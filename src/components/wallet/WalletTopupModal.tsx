@@ -67,7 +67,7 @@ export function WalletTopupModal({ isOpen, onClose }: WalletTopupModalProps) {
     const res = await purchaseCredits(
       currentCreditCount,
       'gateway_card',
-      `${currentCreditCount} LifeOS Kredisi Satın Alımı`
+      `${currentCreditCount} LifeMoney Satın Alımı`
     );
 
     if (res.success) {
@@ -97,7 +97,7 @@ export function WalletTopupModal({ isOpen, onClose }: WalletTopupModalProps) {
                 <Coins className="h-4 w-4" />
               </div>
               <div>
-                <h2 className="text-sm font-bold text-foreground">{localizeText("LifeOS Kredisi Satın Al")}</h2>
+                <h2 className="text-sm font-bold text-foreground">{localizeText("LifeMoney Satın Al")}</h2>
                 <p className="text-[11px] text-muted-foreground">{localizeText("Uygulama İçi Kullanım Bakiyesi")}</p>
               </div>
             </div>
@@ -114,9 +114,9 @@ export function WalletTopupModal({ isOpen, onClose }: WalletTopupModalProps) {
             <div className="p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-900 dark:text-blue-200 space-y-1">
               <div className="flex items-center gap-1.5 font-bold">
                 <Info className="h-4 w-4 text-blue-500 shrink-0" />
-                <span>{localizeText("LifeOS Kredisi Nedir?")}</span>
+                <span>{localizeText("LifeMoney Nedir?")}</span>
               </div>
-              <p className="text-[11px] leading-relaxed">{localizeText("LifeOS Kredisi, uygulama içindeki seçili hizmet ve ürünlerde kullanılan kullanım bakiyesidir. Krediler kullanıcılar arasında transfer edilemez, nakde çevrilemez veya dışarıda kullanılamaz.")}</p>
+              <p className="text-[11px] leading-relaxed">{localizeText("LifeMoney, uygulama içindeki seçili hizmet ve ürünlerde kullanılan kullanım bakiyesidir. Krediler kullanıcılar arasında transfer edilemez, nakde çevrilemez veya dışarıda kullanılamaz.")}</p>
             </div>
 
             {/* Rate Banner */}

@@ -6,6 +6,9 @@ export type AssistantTaskType =
   | 'finance'
   | 'research';
 
+/** Yerel hizmet ekranı köprüsü (asistan → /services/*) */
+export type AssistantServiceKind = 'taxi' | 'moving' | 'craftsman' | 'travel';
+
 export type AssistantTaskStatus =
   | 'draft'
   | 'awaiting_input'
@@ -218,6 +221,8 @@ export interface AssistantTask {
   logs: AssistantTaskLog[];
   resultSummary?: string;
   contentDetails?: ContentSubtypeDetails;
+  /** type === 'services' iken hedef hizmet ekranı */
+  serviceKind?: AssistantServiceKind;
 }
 
 export interface ParsedAssistantCommand {
@@ -229,6 +234,7 @@ export interface ParsedAssistantCommand {
   requiredScopes: AssistantPermissionScopeKey[];
   steps: { id: string; title: string; details?: string }[];
   contentDetails?: ContentSubtypeDetails;
+  serviceKind?: AssistantServiceKind;
 }
 
 export const ASSISTANT_TYPE_CONFIG: Record<

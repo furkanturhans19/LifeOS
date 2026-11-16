@@ -3,7 +3,7 @@ import { assertAdmin } from '@/lib/admin/adminAuthGuard';
 import { FinanceRegistry } from '@/lib/admin/FinanceRegistry';
 
 export async function GET(request: Request) {
-  const auth = assertAdmin(request);
+  const auth = await assertAdmin(request);
   if (!auth.authorized || !auth.context) {
     return auth.response!;
   }

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { AdminRegistry } from './AdminRegistry';
+import { getAdminSessionIdFromRequest } from '@/lib/auth/request-user';
 
 export interface AdminAuthContext {
   isAdmin: boolean;
@@ -9,35 +10,23 @@ export interface AdminAuthContext {
 }
 
 /**
- * Server route helper to authenticate and assert admin permissions
+ * Admin routes require a signed life_admin_session cookie.
+ * Spoofable x-user-id / query params are ignored.
  */
-export function assertAdmin(request: Request): {
+export async function assertAdmin(request: Request): Promise<{
   authorized: boolean;
   context?: AdminAuthContext;
   response?: NextResponse;
-} {
-  const url = new URL(request.url);
-  const userId =
-    request.headers.get('x-user-id') ||
-    url.searchParams.get('userId') ||
-    'user_local';
+}> {
+  const adminId = await getAdminSessionIdFromRequest(request);
 
-  const userEmail =
-    request.headers.get('x-user-email') ||
-    url.searchParams.get('email');
-
-  const result = AdminRegistry.verifyAdmin({
-    userId,
-    email: userEmail,
-  });
-
-  if (!result.isAdmin) {
+  if (!adminId) {
     return {
       authorized: false,
       response: NextResponse.json(
         {
           success: false,
-          error: 'Bu alana erişim yetkiniz bulunmuyor. Yalnızca yetkili yöneticiler işlem yapabilir.',
+          error: 'Yönetici oturumu gerekli. Güvenlik anahtarı ile doğrulama yapın.',
           code: 'UNAUTHORIZED_ADMIN_ACCESS',
         },
         { status: 403 }
@@ -45,8 +34,19 @@ export function assertAdmin(request: Request): {
     };
   }
 
+  const result = AdminRegistry.verifyAdmin({
+    userId: adminId,
+    email: process.env.OWNER_ADMIN_EMAIL || null,
+  });
+
+  // Signed admin session alone is enough after key unlock; bind display name.
   return {
     authorized: true,
-    context: result,
+    context: {
+      isAdmin: true,
+      role: result.role || 'admin',
+      adminId,
+      displayName: result.displayName || 'Yönetici',
+    },
   };
 }

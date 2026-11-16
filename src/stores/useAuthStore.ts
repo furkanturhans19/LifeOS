@@ -24,7 +24,12 @@ export const useAuthStore = create<AuthState>()(
           user: state.user ? { ...state.user, ...updates, updatedAt: new Date().toISOString() } : null,
         })),
       setLoading: (isLoading) => set({ isLoading }),
-      logout: () => set({ user: null, isAuthenticated: false, isLoading: false }),
+      logout: () => {
+        if (typeof document !== 'undefined') {
+          void fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }).catch(() => {});
+        }
+        set({ user: null, isAuthenticated: false, isLoading: false });
+      },
     }),
     {
       name: 'lifeos-auth',

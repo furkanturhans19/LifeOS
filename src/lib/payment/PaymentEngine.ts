@@ -42,8 +42,8 @@ let CREDIT_LEDGER: CreditLedgerEntry[] = [
     creditBalanceAfter: 100,
     unitPriceKurus: LIFEOS_CREDIT_RATE_KURUS,
     totalAmountKurus: 100 * LIFEOS_CREDIT_RATE_KURUS,
-    title: 'LifeOS Kredisi Yükleme',
-    description: '100 Adet LifeOS Kredisi (Kredi Kartı ile)',
+    title: 'LifeMoney Yükleme',
+    description: '100 Adet LifeMoney (Kredi Kartı ile)',
     sourceModule: 'subscription',
     status: 'succeeded',
     originalPaymentMethod: 'Kredi Kartı (**** 4242)',
@@ -86,7 +86,7 @@ let SERVICE_CREDIT_RULES: ServiceCreditUsageRule[] = [
     nameTr: 'Taksi Hizmeti Platform Kullanım Bedeli',
     creditsRequired: 10, // 10 LifeOS Credits = 13.50 TL per completed trip
     version: 1,
-    descriptionTr: 'Yolcu nakit/harici öder. Taksici tamamlanan her müşteri için 10 LifeOS Kredisi harcar.',
+    descriptionTr: 'Yolcu nakit/harici öder. Taksici tamamlanan her müşteri için 10 LifeMoney harcar.',
     updatedAt: new Date().toISOString(),
   },
   {
@@ -94,7 +94,7 @@ let SERVICE_CREDIT_RULES: ServiceCreditUsageRule[] = [
     nameTr: 'Evden Eve Nakliye Platform Kullanım Bedeli',
     creditsRequired: 50, // 50 LifeOS Credits = 67.50 TL per completed job
     version: 1,
-    descriptionTr: 'Nakliye firması tamamlanan taşınma işi başına 50 LifeOS Kredisi harcar.',
+    descriptionTr: 'Nakliye firması tamamlanan taşınma işi başına 50 LifeMoney harcar.',
     updatedAt: new Date().toISOString(),
   },
   {
@@ -102,7 +102,7 @@ let SERVICE_CREDIT_RULES: ServiceCreditUsageRule[] = [
     nameTr: 'Usta / Tamirat Platform Kullanım Bedeli',
     creditsRequired: 25, // 25 LifeOS Credits = 33.75 TL per completed job
     version: 1,
-    descriptionTr: 'Usta tamamlanan iş veya başarılı randevu eşleşmesi başına 25 LifeOS Kredisi harcar.',
+    descriptionTr: 'Usta tamamlanan iş veya başarılı randevu eşleşmesi başına 25 LifeMoney harcar.',
     updatedAt: new Date().toISOString(),
   },
   {
@@ -130,13 +130,13 @@ const IDEMPOTENCY_STORE = new Map<string, { response: any; timestamp: number }>(
 
 export class PaymentEngine {
   /**
-   * Get Active Credit Rate (1 LifeOS Kredisi = 2 TL)
+   * Get Active LifeMoney rate (1 LM = 2,38 ₺)
    */
   public static getCreditRate(): { kurusPerCredit: number; tlPerCredit: number; label: string } {
     return {
       kurusPerCredit: LIFEOS_CREDIT_RATE_KURUS,
       tlPerCredit: LIFEOS_CREDIT_RATE_TL,
-      label: `1 LifeOS Kredisi = ${(LIFEOS_CREDIT_RATE_KURUS / 100).toFixed(2)} TL`,
+      label: `1 LifeMoney = ${LIFEOS_CREDIT_RATE_TL.toFixed(2).replace('.', ',')} ₺`,
     };
   }
 
@@ -254,7 +254,7 @@ export class PaymentEngine {
 
   /**
    * Purchase LifeOS Credits with TL
-   * Rate: 1 LifeOS Kredisi = 2 TL
+   * Rate: 1 LifeMoney = 2 TL
    */
   public static async purchaseCredits(params: {
     userId: string;
@@ -293,8 +293,8 @@ export class PaymentEngine {
       creditBalanceAfter: wallet.creditBalance,
       unitPriceKurus: LIFEOS_CREDIT_RATE_KURUS,
       totalAmountKurus: credits * LIFEOS_CREDIT_RATE_KURUS,
-      title: 'LifeOS Kredisi Yükleme',
-      description: params.description || `${credits} LifeOS Kredisi yüklendi.`,
+      title: 'LifeMoney Yükleme',
+      description: params.description || `${credits} LifeMoney yüklendi.`,
       sourceModule: 'subscription',
       status: 'succeeded',
       amountKurus: params.amountKurus,
@@ -307,7 +307,7 @@ export class PaymentEngine {
   }
 
   /**
-   * Top-up Education Credits (Backwards compatibility wrapper -> adds to LifeOS Kredisi)
+   * Top-up Education Credits (Backwards compatibility wrapper -> adds to LifeMoney)
    */
   public static topupEducationCredits(params: {
     userId: string;
@@ -330,8 +330,8 @@ export class PaymentEngine {
       creditBalanceAfter: wallet.creditBalance,
       unitPriceKurus: LIFEOS_CREDIT_RATE_KURUS,
       totalAmountKurus: params.credits * LIFEOS_CREDIT_RATE_KURUS,
-      title: `${params.credits} LifeOS Kredisi Yükleme`,
-      description: params.description || `+${params.credits} LifeOS Kredisi hesaba tanımlandı.`,
+      title: `${params.credits} LifeMoney Yükleme`,
+      description: params.description || `+${params.credits} LifeMoney hesaba tanımlandı.`,
       sourceModule: 'subscription',
       status: 'succeeded',
       createdAt: new Date().toISOString(),
@@ -485,7 +485,7 @@ export class PaymentEngine {
     if (wallet.creditBalance < creditsNeeded) {
       return {
         success: false,
-        error: `Yetersiz LifeOS Kredisi. Bu işlemi tamamlamak için ${creditsNeeded} krediniz olmalıdır. Mevcut bakiye: ${wallet.creditBalance} Kredi.`,
+        error: `Yetersiz LifeMoney. Bu işlemi tamamlamak için ${creditsNeeded} krediniz olmalıdır. Mevcut bakiye: ${wallet.creditBalance} Kredi.`,
       };
     }
 
@@ -563,7 +563,7 @@ export class PaymentEngine {
     };
 
     CREDIT_LEDGER.unshift(ledgerEntry);
-    return { success: true, message: `${creditsToRefund} LifeOS Kredisi hesaba iade edildi.`, refundedCredits: creditsToRefund };
+    return { success: true, message: `${creditsToRefund} LifeMoney hesaba iade edildi.`, refundedCredits: creditsToRefund };
   }
 
   /**
@@ -599,7 +599,7 @@ export class PaymentEngine {
 
     const wallet = this.getWallet(params.userId);
     if (wallet.creditBalance < params.creditsRequired) {
-      return { success: false, error: `Yetersiz LifeOS Kredisi. Gerekli: ${params.creditsRequired}, Mevcut: ${wallet.creditBalance}.` };
+      return { success: false, error: `Yetersiz LifeMoney. Gerekli: ${params.creditsRequired}, Mevcut: ${wallet.creditBalance}.` };
     }
 
     wallet.creditBalance -= params.creditsRequired;
@@ -735,7 +735,7 @@ export class PaymentEngine {
     if (wallet.creditBalance < creditsNeeded) {
       return {
         success: false,
-        error: `Yetersiz LifeOS Kredisi! Gerekli: ${creditsNeeded} Kredi, Cüzdanınızdaki: ${wallet.creditBalance} Kredi. Lütfen kredi yükleyiniz.`,
+        error: `Yetersiz LifeMoney! Gerekli: ${creditsNeeded} Kredi, Cüzdanınızdaki: ${wallet.creditBalance} Kredi. Lütfen kredi yükleyiniz.`,
       };
     }
 
@@ -755,7 +755,7 @@ export class PaymentEngine {
       unitPriceKurus: LIFEOS_CREDIT_RATE_KURUS,
       totalAmountKurus: -(creditsNeeded * LIFEOS_CREDIT_RATE_KURUS),
       title: intent.referenceItemTitle,
-      description: `LifeOS Kredisi ile satın alma (${creditsNeeded} Kredi)`,
+      description: `LifeMoney ile satın alma (${creditsNeeded} Kredi)`,
       referenceId: intent.referenceItemId,
       referenceTitle: intent.referenceItemTitle,
       sourceModule: intent.sourceModule,
@@ -777,7 +777,7 @@ export class PaymentEngine {
         sellerId: intent.sellerId,
         sellerName: intent.sellerName,
         buyerMaskedId: `${userId.slice(0, 3)}***${userId.slice(-1)}`,
-        buyerName: 'Öğrenci / Müşteri (LifeOS Kredisi)',
+        buyerName: 'Öğrenci / Müşteri (LifeMoney)',
         referenceItemId: intent.referenceItemId,
         referenceItemTitle: intent.referenceItemTitle,
       });

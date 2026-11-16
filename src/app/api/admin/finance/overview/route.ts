@@ -4,7 +4,7 @@ import { FinanceRegistry } from '@/lib/admin/FinanceRegistry';
 import type { TimeFilterOption } from '@/types/finance';
 
 export async function GET(request: Request) {
-  const auth = assertAdmin(request);
+  const auth = await assertAdmin(request);
   if (!auth.authorized || !auth.context) {
     return auth.response!;
   }

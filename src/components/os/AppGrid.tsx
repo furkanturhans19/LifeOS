@@ -281,9 +281,9 @@ export function AppGrid({ pageIndex = 0 }: AppGridProps) {
         onClose={() => setComingSoonModule(null)}
         title={localizeText(comingSoonName)}
         description={
-          localizeText(`${comingSoonName} modülünü sizin için hazırlıyoruz. Çok yakında LifeOS içerisinde kullanıma sunulacaktır.`)
+          localizeText(`${comingSoonName} modülünü sizin için hazırlıyoruz. Çok yakında Life içerisinde kullanıma sunulacaktır.`)
         }
-        moduleName="LifeOS Modül"
+        moduleName="Life Modül"
       />
     </>
   );

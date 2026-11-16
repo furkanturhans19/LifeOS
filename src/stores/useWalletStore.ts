@@ -38,7 +38,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   wallet: null,
   ledger: [],
   refundRequests: [],
-  creditRate: { kurusPerCredit: 200, tlPerCredit: 2, label: '1 LifeOS Kredisi = 2 TL' },
+  creditRate: { kurusPerCredit: 238, tlPerCredit: 2.38, label: '1 LifeMoney = 2,38 ₺' },
   serviceRules: [],
   parental: null,
   isLoading: false,
@@ -55,7 +55,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
           wallet: data.wallet,
           ledger: data.ledger || [],
           refundRequests: data.refundRequests || [],
-          creditRate: data.creditRate || { kurusPerCredit: 200, tlPerCredit: 2, label: '1 LifeOS Kredisi = 2 TL' },
+          creditRate: data.creditRate || { kurusPerCredit: 238, tlPerCredit: 2.38, label: '1 LifeMoney = 2,38 ₺' },
           serviceRules: data.serviceRules || [],
           parental: data.parental || null,
           isLoading: false,
@@ -87,7 +87,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
       set({ isActionLoading: false });
       if (data.success) {
         await get().fetchWallet();
-        return { success: true, message: `${creditCount} LifeOS Kredisi hesabınıza başarıyla tanımlandı.` };
+        return { success: true, message: `${creditCount} LifeMoney hesabınıza başarıyla tanımlandı.` };
       }
       return { success: false, message: data.error || 'Kredi satın alınamadı.' };
     } catch {

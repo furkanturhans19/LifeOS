@@ -1,7 +1,12 @@
 import type { KidsVoiceSettings, KidsVoicePersona, KidsSpeechSpeed } from '@/types/kids';
 
+/** Offline / no-cloud honesty copy — shown when Azure Speech env is absent. */
 export const NO_AZURE_CONFIG_NOTICE =
-  'Sesli anlatımı etkinleştirmek için anlatıcı servisi yapılandırılmalıdır.';
+  'Bulut sesli anlatım şu an kapalı. Azure Speech anahtarı yok; ses çalınmaz, metin ekranda kalır. Erkek/yabancı tarayıcı sesine düşülmez.';
+
+export const KIDS_VOICE_OFFLINE_TITLE = 'Sesli anlatım kapalı';
+export const KIDS_VOICE_OFFLINE_HINT =
+  'Bu kurulumda bulut TTS (Azure) yapılandırılmadı. Masal ve dersler yazılı okunur; “Dinle / Sesli Oku” çalışmaz.';
 
 export const PREVIEW_SAMPLE_TEXT =
   'Merhaba. Ben LifeOS Kids anlatıcısıyım. Birlikte öğrenmeye ve güzel hikâyeler keşfetmeye hazır mısın?';

@@ -6,15 +6,15 @@ import { LANGUAGE_MAP } from '@/lib/i18n/languages';
 export const MODULE_REGISTRY: ModuleDefinition[] = [
   {
     id: 'ai',
-    name: 'LifeOS Asistanı',
-    nameEn: 'LifeOS Assistant',
+    name: 'Life Asistanı',
+    nameEn: 'Life Assistant',
     icon: '🤖',
-    color: '#6366f1',
-    gradient: 'from-indigo-500 to-purple-600',
+    color: '#5B7C6E',
+    gradient: 'from-emerald-600 to-teal-700',
     category: 'productivity',
     status: 'ACTIVE',
-    description: 'Kişisel AI agent ve görev yönetim merkezi',
-    descriptionEn: 'Personal AI agent and task management center',
+    description: 'Yerel görev planı; AI varsa sohbet',
+    descriptionEn: 'Local task plans; chat when AI is available',
     version: '1.0.0',
     sortOrder: 1,
   },
@@ -27,8 +27,8 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
     gradient: 'from-green-400 to-emerald-600',
     category: 'communication',
     status: 'ACTIVE',
-    description: 'Sakin, bağlam odaklı mesajlaşma ve LiveKit arama merkezi',
-    descriptionEn: 'Calm, context-aware messaging and LiveKit calling hub',
+    description: 'UI açık · API bulut ister (kapalı)',
+    descriptionEn: 'UI open · API needs cloud (off)',
     version: '1.0.0',
     sortOrder: 2,
   },
@@ -41,8 +41,8 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
     gradient: 'from-amber-400 to-orange-500',
     category: 'communication',
     status: 'ACTIVE',
-    description: 'Aile bağlarını güçlendir',
-    descriptionEn: 'Strengthen family bonds',
+    description: 'Yerel aile: not, takvim, anı, duyuru',
+    descriptionEn: 'Local family: notes, calendar, memories, posts',
     version: '1.0.0',
     sortOrder: 3,
   },
@@ -55,8 +55,8 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
     gradient: 'from-emerald-400 to-teal-600',
     category: 'finance',
     status: 'ACTIVE',
-    description: 'Finansal hayatını yönet',
-    descriptionEn: 'Manage your financial life',
+    description: 'Yerel harcama/bütçe · LifeMoney (ödeme kapalı)',
+    descriptionEn: 'Local spend/budget · LifeMoney (payments off)',
     version: '1.0.0',
     sortOrder: 4,
   },
@@ -69,24 +69,10 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
     gradient: 'from-red-400 to-rose-600',
     category: 'health',
     status: 'COMING_SOON',
-    description: 'AI destekli sağlık asistanın',
-    descriptionEn: 'Your AI-powered health assistant',
+    description: 'Yol haritası · sağlık AI ekranı yok',
+    descriptionEn: 'Roadmap · no health AI screen yet',
     version: '1.0.0',
     sortOrder: 5,
-  },
-  {
-    id: 'camera',
-    name: 'Kamera',
-    nameEn: 'Camera',
-    icon: '📷',
-    color: '#8b5cf6',
-    gradient: 'from-violet-400 to-purple-600',
-    category: 'utility',
-    status: 'COMING_SOON',
-    description: 'Fotoğraf ve videolarını yönet',
-    descriptionEn: 'Manage your photos and videos',
-    version: '1.0.0',
-    sortOrder: 6,
   },
   {
     id: 'smart-home',
@@ -97,8 +83,8 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
     gradient: 'from-sky-500 to-indigo-600',
     category: 'home',
     status: 'ACTIVE',
-    description: 'İnverter, Solar, Isı Pompası, Kamera, kW Güç ve Ev Aletleri Merkezi',
-    descriptionEn: 'Inverter, Solar, Heat Pump, Cameras, kW Power & Appliance Hub',
+    description: 'HA gerçek olabilir · Matter simülasyon',
+    descriptionEn: 'HA may be real · Matter is simulated',
     version: '1.0.0',
     sortOrder: 7,
   },
@@ -111,8 +97,8 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
     gradient: 'from-rose-400 to-pink-600',
     category: 'entertainment',
     status: 'ACTIVE',
-    description: 'LifeOS oyun merkezi',
-    descriptionEn: 'LifeOS gaming center',
+    description: '20 yerel açık kaynak oyun · skor cihazında',
+    descriptionEn: '20 local open-source games · scores on device',
     version: '1.0.0',
     sortOrder: 9,
   },
@@ -125,8 +111,8 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
     gradient: 'from-blue-500 to-indigo-600',
     category: 'productivity',
     status: 'ACTIVE',
-    description: 'Kurslar, canlı dersler ve akademi merkezi',
-    descriptionEn: 'Courses, live sessions and academy hub',
+    description: 'UI açık · Akademi API bulut ister (kapalı)',
+    descriptionEn: 'UI open · Academy API needs cloud (off)',
     version: '1.0.0',
     sortOrder: 10,
   },
@@ -139,8 +125,8 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
     gradient: 'from-lime-400 to-green-500',
     category: 'entertainment',
     status: 'ACTIVE',
-    description: 'Çocuklar için güvenli mini oyunlar, çizgi filmler, masallar ve eğitici dersler',
-    descriptionEn: 'Safe mini games, cartoons, stories and study space for kids',
+    description: 'Yerel oyun/hikâye/çizim · film sınırlı',
+    descriptionEn: 'Local games/stories/draw · limited videos',
     version: '1.0.0',
     sortOrder: 10,
   },
@@ -153,8 +139,8 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
     gradient: 'from-blue-400 to-indigo-500',
     category: 'communication',
     status: 'ACTIVE',
-    description: 'Topluluklar ve sana özel akış',
-    descriptionEn: 'Communities and personalized feed',
+    description: 'UI açık · Nodes API bulut ister (kapalı)',
+    descriptionEn: 'UI open · Nodes API needs cloud (off)',
     version: '1.0.0',
     sortOrder: 11,
   },
@@ -167,24 +153,10 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
     gradient: 'from-orange-400 to-red-500',
     category: 'utility',
     status: 'COMING_SOON',
-    description: 'LifeOS uygulama mağazası',
-    descriptionEn: 'LifeOS app store',
+    description: 'Yol haritası · mağaza / satın alma ekranı yok',
+    descriptionEn: 'Roadmap · no store / purchase screen',
     version: '1.0.0',
     sortOrder: 12,
-  },
-  {
-    id: 'cloud',
-    name: 'Bulut',
-    nameEn: 'Cloud',
-    icon: '☁️',
-    color: '#64748b',
-    gradient: 'from-slate-400 to-gray-600',
-    category: 'utility',
-    status: 'COMING_SOON',
-    description: 'Bulut depolama ve yedekleme',
-    descriptionEn: 'Cloud storage and backup',
-    version: '1.0.0',
-    sortOrder: 13,
   },
   {
     id: 'files',
@@ -195,8 +167,8 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
     gradient: 'from-sky-400 to-blue-500',
     category: 'productivity',
     status: 'COMING_SOON',
-    description: 'Dosyalarını yönet',
-    descriptionEn: 'Manage your files',
+    description: 'Dosya yükleme yok · metin için Belgeler',
+    descriptionEn: 'No file upload · use Documents for text',
     version: '1.0.0',
     sortOrder: 14,
   },
@@ -209,24 +181,10 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
     gradient: 'from-amber-500 to-emerald-600',
     category: 'utility',
     status: 'ACTIVE',
-    description: 'Taksi, seyahat, nakliye ve usta',
-    descriptionEn: 'Taxi, travel, moving and handyman',
+    description: 'Yerel demo: taksi, otobüs, nakliye, usta',
+    descriptionEn: 'Local demo: taxi, bus, moving, handyman',
     version: '1.0.0',
     sortOrder: 15,
-  },
-  {
-    id: 'emergency',
-    name: 'Acil',
-    nameEn: 'Emergency',
-    icon: '🆘',
-    color: '#dc2626',
-    gradient: 'from-red-500 to-red-700',
-    category: 'utility',
-    status: 'COMING_SOON',
-    description: 'Acil durum yönetimi',
-    descriptionEn: 'Emergency management',
-    version: '1.0.0',
-    sortOrder: 16,
   },
   {
     id: 'documents',
@@ -236,9 +194,9 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
     color: '#475569',
     gradient: 'from-slate-400 to-slate-600',
     category: 'productivity',
-    status: 'COMING_SOON',
-    description: 'Dijital belgelerini sakla',
-    descriptionEn: 'Store your digital documents',
+    status: 'ACTIVE',
+    description: 'Yerel metin belgeleri',
+    descriptionEn: 'Local text documents',
     version: '1.0.0',
     sortOrder: 17,
   },
@@ -251,8 +209,8 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
     gradient: 'from-violet-500 to-purple-700',
     category: 'entertainment',
     status: 'COMING_SOON',
-    description: 'Müzik, film ve podcast',
-    descriptionEn: 'Music, movies and podcasts',
+    description: 'Yol haritası · film/TV ekranı yok',
+    descriptionEn: 'Roadmap · no media screen yet',
     version: '1.0.0',
     sortOrder: 18,
   },
@@ -265,8 +223,8 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
     gradient: 'from-teal-400 to-cyan-600',
     category: 'productivity',
     status: 'COMING_SOON',
-    description: 'Anlık çeviri asistanı',
-    descriptionEn: 'Real-time translation assistant',
+    description: 'Yol haritası · çeviri motoru yok',
+    descriptionEn: 'Roadmap · no translation engine yet',
     version: '1.0.0',
     sortOrder: 19,
   },
@@ -279,8 +237,8 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
     gradient: 'from-yellow-500 to-amber-600',
     category: 'utility',
     status: 'COMING_SOON',
-    description: 'LifeOS puan ve ödül sistemi',
-    descriptionEn: 'LifeOS points and rewards',
+    description: 'Yol haritası · puan/ödül ekranı yok',
+    descriptionEn: 'Roadmap · no rewards screen yet',
     version: '1.0.0',
     sortOrder: 20,
   },
@@ -293,8 +251,8 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
     gradient: 'from-gray-400 to-gray-600',
     category: 'productivity',
     status: 'COMING_SOON',
-    description: 'Hayatını otomatikleştir',
-    descriptionEn: 'Automate your life',
+    description: 'Yol haritası · senaryo motoru yok',
+    descriptionEn: 'Roadmap · no automation engine yet',
     version: '1.0.0',
     sortOrder: 21,
   },
@@ -307,8 +265,8 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
     gradient: 'from-pink-400 to-rose-600',
     category: 'productivity',
     status: 'COMING_SOON',
-    description: 'Kendi uygulamalarını oluştur',
-    descriptionEn: 'Build your own apps',
+    description: 'Yol haritası · no-code oluşturucu yok',
+    descriptionEn: 'Roadmap · no app builder yet',
     version: '1.0.0',
     sortOrder: 22,
   },
@@ -321,8 +279,8 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
     gradient: 'from-amber-400 to-orange-500',
     category: 'utility',
     status: 'ACTIVE',
-    description: 'Şehir içi ve şehirlerarası taksi çağırma',
-    descriptionEn: 'City and intercity taxi hailing',
+    description: 'Yerel demo · gerçek sürücü/ödeme yok',
+    descriptionEn: 'Local demo · no real driver/payment',
     version: '1.0.0',
     sortOrder: 23,
   },
@@ -335,8 +293,8 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
     gradient: 'from-blue-400 to-indigo-500',
     category: 'utility',
     status: 'ACTIVE',
-    description: 'Otobüs ve seyahat planlama',
-    descriptionEn: 'Bus and travel planning',
+    description: 'Yerel demo · gerçek bilet satışı yok',
+    descriptionEn: 'Local demo · no real ticket sales',
     version: '1.0.0',
     sortOrder: 24,
   },
@@ -349,8 +307,8 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
     gradient: 'from-emerald-400 to-teal-500',
     category: 'utility',
     status: 'ACTIVE',
-    description: 'Evden eve ve parça taşımacılık',
-    descriptionEn: 'Moving and logistics',
+    description: 'Yerel demo · gerçek nakliyeci eşleşmesi yok',
+    descriptionEn: 'Local demo · no real mover matching',
     version: '1.0.0',
     sortOrder: 25,
   },
@@ -363,12 +321,32 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
     gradient: 'from-purple-400 to-violet-500',
     category: 'utility',
     status: 'ACTIVE',
-    description: 'Elektrik, tesisat, boya ve montaj',
-    descriptionEn: 'Electric, plumbing, painting and repair',
+    description: 'Yerel demo · gerçek usta eşleşmesi yok',
+    descriptionEn: 'Local demo · no real pro matching',
     version: '1.0.0',
     sortOrder: 26,
   },
 ];
+
+/** Library honesty chips (not product status — UI hint only). */
+export type LibraryHonestyKind = 'cloud_off' | 'local_demo';
+
+export function getLibraryHonesty(moduleId: string): LibraryHonestyKind | null {
+  if (moduleId === 'chat' || moduleId === 'courses' || moduleId === 'explore') return 'cloud_off';
+  if (
+    moduleId === 'services' ||
+    moduleId === 'taxi' ||
+    moduleId === 'travel' ||
+    moduleId === 'moving' ||
+    moduleId === 'craftsman'
+  ) {
+    return 'local_demo';
+  }
+  return null;
+}
+
+/** Modules permanently removed from the product surface. */
+export const REMOVED_MODULE_IDS = new Set(['camera', 'cloud', 'emergency', 'energy']);
 
 export function getModuleById(id: string): ModuleDefinition | undefined {
   return MODULE_REGISTRY.find((m) => m.id === id);
@@ -378,8 +356,18 @@ export function getActiveModules(): ModuleDefinition[] {
   return MODULE_REGISTRY.filter((m) => m.status === 'ACTIVE');
 }
 
+export function getComingSoonModules(): ModuleDefinition[] {
+  return MODULE_REGISTRY.filter((m) => m.status === 'COMING_SOON');
+}
+
 export function getModulesByCategory(category: string): ModuleDefinition[] {
-  return MODULE_REGISTRY.filter((m) => m.category === category);
+  return MODULE_REGISTRY.filter((m) => m.category === category && m.status === 'ACTIVE');
+}
+
+export function isHomescreenEligible(id: string): boolean {
+  if (REMOVED_MODULE_IDS.has(id)) return false;
+  const mod = getModuleById(id);
+  return Boolean(mod && mod.status === 'ACTIVE');
 }
 
 export function getLocalizedModuleName(m: ModuleDefinition, locale: string = 'tr'): string {
@@ -401,13 +389,41 @@ export function searchModules(query: string, locale: string = 'tr'): ModuleDefin
   });
 }
 
+/** Only ACTIVE modules on the default homescreen — no stub icons. */
 export const DEFAULT_HOMESCREEN_MODULES = [
-  'courses', 'services', 'family', 'finance', 'arcade',
-  'kids', 'smart-home', 'ai', 'chat', 'medai',
-  'files', 'store', 'rewards',
-];
+  'documents',
+  'services',
+  'family',
+  'finance',
+  'arcade',
+  'kids',
+  'smart-home',
+  'ai',
+].filter((id) => isHomescreenEligible(id));
 
 export const DEFAULT_DOCK_MODULES = [
-  'services', 'chat', 'ai', 'family',
-];
+  'services',
+  'ai',
+  'family',
+  'finance',
+].filter((id) => isHomescreenEligible(id));
+
+export function isRemovedModule(id: string): boolean {
+  return REMOVED_MODULE_IDS.has(id);
+}
+
+export function filterRemovedModules<T extends { moduleId?: string; id?: string }>(items: T[]): T[] {
+  return items.filter((item) => {
+    const id = item.moduleId ?? item.id;
+    return !id || !REMOVED_MODULE_IDS.has(id);
+  });
+}
+
+/** Drop removed + COMING_SOON entries from homescreen/dock layouts. */
+export function filterHomescreenEligible<T extends { moduleId?: string; id?: string }>(items: T[]): T[] {
+  return items.filter((item) => {
+    const id = item.moduleId ?? item.id;
+    return !id || isHomescreenEligible(id);
+  });
+}
 

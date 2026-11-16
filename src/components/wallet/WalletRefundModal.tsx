@@ -112,7 +112,7 @@ export function WalletRefundModal({ isOpen, onClose }: WalletRefundModalProps) {
             <div className="p-3 rounded-2xl bg-muted/40 border border-border/70 flex items-center justify-between text-xs">
               <span className="text-muted-foreground">{localizeText("İade Edilebilir Krediniz:")}</span>
               <span className="font-bold text-foreground font-mono">
-                {localizeText(maxEligibleCredits)}{localizeText(" LifeOS Kredisi")}</span>
+                {localizeText(maxEligibleCredits)}{localizeText(" LifeMoney")}</span>
             </div>
 
             {/* Credit Input */}

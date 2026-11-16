@@ -19,7 +19,7 @@ export function FinanceHeader({ onOpenPrivacyInfo }: FinanceHeaderProps) {
   return (
     <PageHeader
       title={localizeText("Finans")}
-      subtitle={localizeText("Kişisel varlık, bütçe ve harcama yönetimi")}
+      subtitle={localizeText('LifeMoney · 1 LM = 2,38 ₺')}
       icon={<Wallet className="h-4 w-4 text-emerald-500" />}
       backHref="/home"
       badge={

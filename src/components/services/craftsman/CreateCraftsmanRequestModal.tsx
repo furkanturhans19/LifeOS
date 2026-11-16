@@ -27,21 +27,27 @@ import { useLocaleRender } from '@/lib/i18n/runtime';
 interface CreateCraftsmanRequestModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialCategory?: CraftsmanCategory;
 }
 
 export function CreateCraftsmanRequestModal({
   isOpen,
   onClose,
+  initialCategory = 'electrical',
 }: CreateCraftsmanRequestModalProps) {
   const localizeText = useLocaleRender();
   const { createCraftsmanRequest } = useCraftsmanStore();
 
-  const [category, setCategory] = useState<CraftsmanCategory>('electrical');
+  const [category, setCategory] = useState<CraftsmanCategory>(initialCategory);
   const [problemDescription, setProblemDescription] = useState('');
   const [location, setLocation] = useState('');
   const [preferredDateTime, setPreferredDateTime] = useState('Hafta içi / En Kısa Sürede');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (isOpen) setCategory(initialCategory);
+  }, [isOpen, initialCategory]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

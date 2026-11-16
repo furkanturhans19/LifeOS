@@ -119,15 +119,19 @@ export function getInitials(name: string): string {
     .slice(0, 2);
 }
 
-export function setSessionCookie(supabaseId: string) {
-  if (typeof document !== 'undefined') {
-    document.cookie = `lifeos_session=${supabaseId}; path=/; max-age=${60 * 60 * 24 * 7}; sameSite=lax`;
-  }
+/**
+ * @deprecated Client can no longer set session cookies (httpOnly).
+ * Login/register APIs attach signed cookies. Kept as no-op for call-site safety.
+ */
+export function setSessionCookie(_supabaseId: string) {
+  // no-op — sessions are httpOnly and set by /api/auth/*
 }
 
 export function clearSessionCookie() {
   if (typeof document !== 'undefined') {
+    // Best-effort clear of legacy non-httpOnly cookies; server logout clears httpOnly.
     document.cookie = 'lifeos_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; sameSite=lax';
+    void fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }).catch(() => {});
   }
 }
 

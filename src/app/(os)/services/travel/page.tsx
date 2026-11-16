@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
-import { TravelPlatform } from '@/components/platform/TravelPlatform';
+import { TravelScreen } from '@/components/services/travel/TravelScreen';
 
 export const metadata: Metadata = {
-  title: 'Seyahat Merkezi — LifeOS',
-  description: 'LifeOS Şehirlerarası Otobüs Sefer Arama ve Seyahat Platformu',
+  title: 'Seyahat — Life',
+  description: 'Otobüs sefer ara ve yerel rezervasyon kaydı',
 };
 
 export default function TravelPage() {
-  return <TravelPlatform />;
+  return <TravelScreen />;
 }

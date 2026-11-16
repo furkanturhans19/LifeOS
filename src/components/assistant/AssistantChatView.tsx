@@ -27,6 +27,7 @@ export function AssistantChatView() {
     isStreaming,
     fetchProviderHealth,
     sendMessage,
+    providerInfo,
   } = useAssistantStore();
 
   const [input, setInput] = useState('');
@@ -114,6 +115,15 @@ export function AssistantChatView() {
           </div>
 
           <div className="flex items-center gap-2">
+            <span
+              className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                providerInfo.isOnline
+                  ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
+                  : 'bg-amber-500/15 text-amber-800 dark:text-amber-200'
+              }`}
+            >
+              {localizeText(providerInfo.isOnline ? 'AI açık' : 'Plan-only')}
+            </span>
           </div>
         </div>
 
@@ -124,10 +134,16 @@ export function AssistantChatView() {
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground font-bold shadow-md mb-4">
                 <Bot className="h-6 w-6" />
               </div>
-              <h2 className="text-base sm:text-lg font-bold text-foreground">{localizeText("LifeOS Asistan’a Hoş Geldiniz")}</h2>
-
-
-
+              <h2 className="text-base sm:text-lg font-bold text-foreground">
+                {localizeText('Life Asistan')}
+              </h2>
+              <p className="mt-2 max-w-sm text-xs text-muted-foreground">
+                {localizeText(
+                  providerInfo.isOnline
+                    ? 'Soru sor veya görev ver — AI yanıtlar.'
+                    : 'AI kapalıyken yazdığın komut yerel görev planına dönüşür.'
+                )}
+              </p>
             </div>
           ) : (
             messages.map((msg) => (
@@ -201,7 +217,11 @@ export function AssistantChatView() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={localizeText("LifeOS Asistan’a bir şey sorun veya görev verin...")}
+                placeholder={localizeText(
+                  providerInfo.isOnline
+                    ? 'Life Asistan’a bir şey sorun…'
+                    : 'Komut yaz — yerel plan oluşturulsun…'
+                )}
                 rows={1}
                 className="w-full resize-none bg-transparent text-base text-foreground placeholder:text-muted-foreground focus:outline-none max-h-32"
               />

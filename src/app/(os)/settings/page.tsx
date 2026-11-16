@@ -121,6 +121,14 @@ export default function SettingsPage() {
           <SettingsRow label={localizeText(t.settings.account)} href="/settings/account" />
           <SettingsRow label={localizeText(t.settings.devices)} href="/settings/devices" />
         </SettingsSection>
+
+        <SettingsSection title={localizeText('Sistem')}>
+          <SettingsRow
+            label={localizeText('Sistem Durumu')}
+            value={localizeText('Hazır / kısmi / kapalı haritası')}
+            href="/settings/status"
+          />
+        </SettingsSection>
       </div>
 
       <Dock />

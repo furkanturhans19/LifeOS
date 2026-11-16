@@ -19,6 +19,7 @@ import { Card } from '@/components/ui/Card';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useKidsStore } from '@/stores/useKidsStore';
 import { kidsSpeech } from '@/services/kidsSpeechService';
+import { KidsVoiceOfflineBanner } from '@/components/kids/KidsVoiceOfflineBanner';
 import type { KidsStudySubject, KidsStudyLesson } from '@/types/kids';
 import { cn } from '@/lib/utils';
 import { useLocaleRender } from '@/lib/i18n/runtime';
@@ -230,6 +231,8 @@ export function KidsStudyView({ onBackToKids }: { onBackToKids: () => void }) {
           </Button>
         </div>
 
+        {!hasFemaleVoice && <KidsVoiceOfflineBanner compact />}
+
         {/* Main lesson arena */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col items-center justify-center max-w-md mx-auto w-full">
           {!isQuizMode ? (
@@ -373,12 +376,24 @@ export function KidsStudyView({ onBackToKids }: { onBackToKids: () => void }) {
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <h1 className="truncate text-base font-bold text-foreground">{localizeText("Kids Study (Öğrenme)")}</h1>
-              <StatusBadge status="verified" label={localizeText("Eğitici Dersler")} size="sm" />
+              <StatusBadge
+                status={hasFemaleVoice ? 'verified' : 'pending'}
+                label={localizeText(hasFemaleVoice ? 'Eğitici Dersler' : 'Ses kapalı')}
+                size="sm"
+              />
             </div>
-            <p className="truncate text-xs text-muted-foreground">{localizeText("Harfler, sayılar, bilim ve doğa keşfi")}</p>
+            <p className="truncate text-xs text-muted-foreground">
+              {localizeText(
+                hasFemaleVoice
+                  ? 'Harfler, sayılar, bilim ve doğa keşfi'
+                  : 'Harfler ve sayılar · sesli telaffuz şu an kapalı'
+              )}
+            </p>
           </div>
         </div>
       </div>
+
+      {!hasFemaleVoice && <KidsVoiceOfflineBanner compact />}
 
       {/* Lesson List */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3 max-w-2xl mx-auto w-full">

@@ -1,21 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Eye, Database, Lock, UserCheck, Shield } from 'lucide-react';
+import { ArrowLeft, Eye, Database, Shield } from 'lucide-react';
 import { useLocaleRender } from '@/lib/i18n/runtime';
+import { usePrivacyStore, type PrivacySettings } from '@/stores/usePrivacyStore';
+import { LocalBackupPanel } from '@/components/common/LocalBackupPanel';
 
 export default function PrivacySettingsPage() {
   const localizeText = useLocaleRender();
-  const [privacy, setPrivacy] = useState({
-    profileVisibility: true,
-    dataTelemetry: false,
-    activityLog: true,
-  });
-
-  const toggle = (key: keyof typeof privacy) => {
-    setPrivacy((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
+  const privacy = usePrivacyStore();
+  const toggle = (key: keyof PrivacySettings) => privacy.toggle(key);
 
   return (
     <div className="min-h-screen pb-28 pt-8 px-4 max-w-lg mx-auto">
@@ -27,8 +22,12 @@ export default function PrivacySettingsPage() {
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-foreground">{localizeText("Gizlilik")}</h1>
-          <p className="text-xs text-muted-foreground">{localizeText("Veri paylaşımı ve görünürlük ayarları")}</p>
+          <h1 className="text-xl font-bold tracking-tight text-foreground">
+            {localizeText('Gizlilik')}
+          </h1>
+          <p className="text-xs text-muted-foreground">
+            {localizeText('Tercihler bu cihazda saklanır')}
+          </p>
         </div>
       </div>
 
@@ -42,8 +41,14 @@ export default function PrivacySettingsPage() {
               <Eye className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-medium text-foreground">{localizeText("Arama ve Profil Görünürlüğü")}</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">{localizeText("Diğer LifeOS kullanıcıları sizi @kullaniciadi ile bulabilir")}</p>
+              <h3 className="text-sm font-medium text-foreground">
+                {localizeText('Arama ve Profil Görünürlüğü')}
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {localizeText(
+                  'Bulut arama kapalıyken bu tercih yalnızca yerel profil için not edilir'
+                )}
+              </p>
             </div>
           </div>
           <div
@@ -64,8 +69,14 @@ export default function PrivacySettingsPage() {
               <Shield className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-medium text-foreground">{localizeText("Aktivite ve Denetim Günlüğü")}</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">{localizeText("Güvenlik için modül ve cihaz erişim günlüklerini yerel olarak tut")}</p>
+              <h3 className="text-sm font-medium text-foreground">
+                {localizeText('Aktivite ve Denetim Günlüğü')}
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {localizeText(
+                  'Güvenlik için modül ve cihaz erişim günlüklerini yerel olarak tut'
+                )}
+              </p>
             </div>
           </div>
           <div
@@ -86,8 +97,14 @@ export default function PrivacySettingsPage() {
               <Database className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-medium text-foreground">{localizeText("Anonim Telemetri ve Hata Raporları")}</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">{localizeText("Sistem kararlılığını artırmak için isimsiz çökme raporları gönder")}</p>
+              <h3 className="text-sm font-medium text-foreground">
+                {localizeText('Anonim Telemetri ve Hata Raporları')}
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {localizeText(
+                  'Telemetri uç noktası şu an kapalı; tercih yine de kaydedilir'
+                )}
+              </p>
             </div>
           </div>
           <div
@@ -98,6 +115,15 @@ export default function PrivacySettingsPage() {
             <div className="w-4 h-4 rounded-full bg-white shadow-md transform transition-transform" />
           </div>
         </div>
+      </div>
+
+      <div id="data" className="mt-6 space-y-3">
+        <h2 className="px-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          {localizeText('Veri yönetimi')}
+        </h2>
+        <LocalBackupPanel scope="finance" />
+        <LocalBackupPanel scope="family" />
+        <LocalBackupPanel scope="documents" />
       </div>
     </div>
   );

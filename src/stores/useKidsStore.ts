@@ -16,6 +16,8 @@ interface KidsStoreState {
 
   // Parent Controls & PIN
   parentPin: string;
+  /** false until parent sets a PIN other than the factory default */
+  hasCustomPin: boolean;
   isKidsModeActive: boolean;
   isParentUnlocked: boolean;
   dailyTimeLimitMinutes: number | null; // e.g. 60
@@ -79,10 +81,11 @@ export const useKidsStore = create<KidsStoreState>()(
       setActiveSection: (activeSection) => set({ activeSection }),
 
       parentPin: '2026',
+      hasCustomPin: false,
       isKidsModeActive: true,
       isParentUnlocked: false,
       dailyTimeLimitMinutes: 60,
-      todayUsageMinutes: 15,
+      todayUsageMinutes: 0,
       movieAgeFilter: 'all',
       allowedSubjects: DEFAULT_SUBJECTS,
       soundEnabled: true,
@@ -163,7 +166,16 @@ export const useKidsStore = create<KidsStoreState>()(
         if (!/^\d{4}$/.test(newPin)) {
           return { success: false, error: 'Yeni PIN tam 4 haneli rakamlardan oluşmalıdır.' };
         }
-        set({ parentPin: newPin });
+        if (newPin === '2026') {
+          return {
+            success: false,
+            error: 'Varsayılan PIN (2026) kullanılamaz. Farklı bir kod seçin.',
+          };
+        }
+        if (newPin === oldPin) {
+          return { success: false, error: 'Yeni PIN mevcut PIN ile aynı olamaz.' };
+        }
+        set({ parentPin: newPin, hasCustomPin: true });
         return { success: true };
       },
 
@@ -188,6 +200,7 @@ export const useKidsStore = create<KidsStoreState>()(
       resetKidsSettings: () =>
         set({
           parentPin: '2026',
+          hasCustomPin: false,
           isKidsModeActive: true,
           isParentUnlocked: false,
           dailyTimeLimitMinutes: 60,
@@ -203,7 +216,47 @@ export const useKidsStore = create<KidsStoreState>()(
         }),
     }),
     {
-      name: 'lifeos-kids-storage',
+      name: 'life-kids-v2',
+      partialize: (state) => ({
+        parentPin: state.parentPin,
+        hasCustomPin: state.hasCustomPin,
+        isKidsModeActive: state.isKidsModeActive,
+        dailyTimeLimitMinutes: state.dailyTimeLimitMinutes,
+        todayUsageMinutes: state.todayUsageMinutes,
+        movieAgeFilter: state.movieAgeFilter,
+        allowedSubjects: state.allowedSubjects,
+        soundEnabled: state.soundEnabled,
+        watchProgress: state.watchProgress,
+        voiceSettings: state.voiceSettings,
+      }),
+      merge: (persisted, current) => {
+        const p = (persisted || {}) as Partial<KidsStoreState>;
+        let legacy: Partial<KidsStoreState> = {};
+        if (typeof window !== 'undefined') {
+          try {
+            const raw = window.localStorage.getItem('lifeos-kids-storage');
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              legacy = (parsed?.state || parsed) as Partial<KidsStoreState>;
+            }
+          } catch {
+            /* ignore */
+          }
+        }
+        const parentPin = p.parentPin ?? legacy.parentPin ?? current.parentPin;
+        const hasCustomPin =
+          p.hasCustomPin ??
+          legacy.hasCustomPin ??
+          (parentPin !== '2026');
+        return {
+          ...current,
+          ...legacy,
+          ...p,
+          parentPin,
+          hasCustomPin,
+          isParentUnlocked: false,
+        };
+      },
     }
   )
 );

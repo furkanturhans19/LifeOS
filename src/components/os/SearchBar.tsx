@@ -20,7 +20,11 @@ export function SearchBar() {
   const inputRef = useRef<HTMLInputElement>(null);
   const { t, locale } = useTranslation();
 
-  const results = query.trim() ? searchModules(query, locale).slice(0, 6) : [];
+  const results = query.trim()
+    ? searchModules(query, locale)
+        .sort((a, b) => Number(b.status === 'ACTIVE') - Number(a.status === 'ACTIVE'))
+        .slice(0, 6)
+    : [];
 
   function handleExpand() {
     setIsExpanded(true);
@@ -36,7 +40,7 @@ export function SearchBar() {
   function handleModuleClick(moduleId: string) {
     handleClose();
     const entry = results.find(item => item.id === moduleId);
-    router.push(entry?.status === 'ACTIVE' ? moduleHref(moduleId) : '/library');
+    router.push(entry?.status === 'ACTIVE' ? moduleHref(moduleId) : '/library?tab=soon');
   }
 
   const placeholder = t.common.searchPlaceholder;

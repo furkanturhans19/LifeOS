@@ -8,11 +8,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Eye, EyeOff, Mail, Lock, User, AtSign } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { generateLifeOSId, cleanLifeOSId, formatLifeOSId, setSessionCookie } from '@/lib/utils';
+import { LifeLogo } from '@/components/brand/LifeLogo';
+import { generateLifeOSId, cleanLifeOSId, formatLifeOSId } from '@/lib/utils';
 import { useLocaleRender } from '@/lib/i18n/runtime';
 
 const registerSchema = z
@@ -77,62 +77,33 @@ export function RegisterForm() {
     }
 
     try {
-      // 1. Register with Database API to save user and verify uniqueness
-      let dbUser: any = null;
-      try {
-        const res = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: data.email,
-            displayName: data.displayName.trim(),
-            lifeosId: cleanedUsername,
-          }),
-        });
-
-        const resData = await res.json();
-        if (!res.ok) {
-          setError(resData.error || 'Kayıt başarısız oldu.');
-          return;
-        }
-        dbUser = resData.user;
-      } catch (err) {
-        console.warn('DB register API fallback:', err);
-      }
-
-      // 2. Register in Supabase if configured
-      let supabaseUserId = dbUser?.id || `sb_${Date.now()}`;
-      try {
-        const supabase = createClient();
-        const { data: authData, error: signUpError } = await supabase.auth.signUp({
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({
           email: data.email,
+          displayName: data.displayName.trim(),
+          lifeosId: cleanedUsername,
           password: data.password,
-          options: {
-            data: {
-              display_name: data.displayName.trim(),
-              lifeos_id: cleanedUsername,
-            },
-          },
-        });
+        }),
+      });
 
-        if (signUpError && !signUpError.message.includes('fetch failed') && !signUpError.message.includes('placeholder')) {
-          if (signUpError.message.includes('already registered')) {
-            setError('Bu e-posta adresi zaten kullanılıyor.');
-            return;
-          }
-        }
-        if (authData?.user) {
-          supabaseUserId = authData.user.id;
-        }
-      } catch (sbErr) {
-        console.warn('Supabase signup fallback:', sbErr);
+      const resData = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(resData.error || 'Kayıt başarısız oldu.');
+        return;
       }
 
-      // 3. Set local auth session
-      const finalSupabaseUserId = supabaseUserId;
+      const dbUser = resData.user;
+      if (!dbUser?.supabaseId) {
+        setError('Kayıt tamamlanamadı.');
+        return;
+      }
+
       setUser({
-        id: dbUser?.id || finalSupabaseUserId,
-        supabaseId: finalSupabaseUserId,
+        id: dbUser.id,
+        supabaseId: dbUser.supabaseId,
         lifeosId: cleanedUsername,
         email: data.email,
         displayName: data.displayName.trim(),
@@ -142,15 +113,14 @@ export function RegisterForm() {
         theme: 'dark',
         backgroundType: 'default',
         backgroundValue: null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: dbUser.createdAt || new Date().toISOString(),
+        updatedAt: dbUser.updatedAt || new Date().toISOString(),
       });
-      setSessionCookie(finalSupabaseUserId);
 
       router.replace('/home');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Registration failed:', err);
-      setError(err.message || 'Kayıt işlemi sırasında bir hata oluştu.');
+      setError(err instanceof Error ? err.message : 'Kayıt işlemi sırasında bir hata oluştu.');
     }
   }
 
@@ -161,19 +131,19 @@ export function RegisterForm() {
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
       className="space-y-6"
     >
-      {/* Logo */}
-      <div className="flex flex-col items-center gap-3">
+      <div className="flex flex-col items-center gap-4">
         <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
+          initial={{ scale: 0.92, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.4, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-          className="h-16 w-16 rounded-[22px] bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-xl shadow-indigo-500/30"
+          transition={{ duration: 0.45, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
         >
-          <span className="text-3xl">⚡</span>
+          <LifeLogo size={72} priority />
         </motion.div>
-        <div className="text-center">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">{localizeText("LifeOS'a Katıl")}</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">{localizeText("Kişisel dijital yaşam alanını oluştur")}</p>
+        <div className="text-center space-y-1">
+          <h1 className="font-[family-name:var(--font-newsreader)] text-4xl font-medium tracking-tight text-foreground italic">
+            Life
+          </h1>
+          <p className="text-sm text-muted-foreground">{localizeText('Kişisel dijital yaşam alanını oluştur')}</p>
         </div>
       </div>
 

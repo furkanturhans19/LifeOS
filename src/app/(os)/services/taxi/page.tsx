@@ -1,11 +1,16 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
-import { ServicePlatform } from '@/components/platform/ServicePlatform';
+import { TaxiScreen } from '@/components/services/taxi/TaxiScreen';
 
 export const metadata: Metadata = {
-  title: 'Taksi — LifeOS',
-  description: 'LifeOS Güvenli ve Sabit Fiyatlı Taksi Çağırma Sistemi',
+  title: 'Taksi — Life',
+  description: 'Alış–varış, sabit fiyat teklifi (yerel demo)',
 };
 
 export default function TaxiPage() {
-  return <ServicePlatform kind="taxi" />;
+  return (
+    <Suspense fallback={null}>
+      <TaxiScreen />
+    </Suspense>
+  );
 }

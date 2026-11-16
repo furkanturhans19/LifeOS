@@ -1,6 +1,7 @@
 'use client';
 
 import { AppArtwork } from '@/components/ui/AppArtwork';
+import { LifeLogo } from '@/components/brand/LifeLogo';
 
 import React from 'react';
 import Link from 'next/link';
@@ -17,8 +18,6 @@ import {
   Bell,
   Settings,
   User,
-  Search,
-  Sparkles,
   Sun,
   Moon,
 } from 'lucide-react';
@@ -58,14 +57,17 @@ export function DesktopSidebar() {
 
   if (pathname === "/explore") return null;
   return (
-    <aside className="hidden lg:flex w-64 flex-col border-r border-border/80 bg-card/60 backdrop-blur-md p-4 select-none shrink-0">
-      {/* Brand Header */}
-      <div className="flex items-center justify-between px-3 py-2 mb-4">
-        <Link href="/home" className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs font-bold text-base">{localizeText("L")}</div>
-          <div>
-            <span className="font-bold text-base tracking-tight text-foreground">{localizeText("LifeOS")}</span>
-            <span className="block text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{localizeText("Dijital Yaşam")}</span>
+    <aside className="hidden lg:flex w-60 shrink-0 select-none flex-col border-r border-border/60 bg-card/50 p-4 backdrop-blur-md">
+      <div className="mb-5 flex items-center justify-between px-2 py-1">
+        <Link href="/home" className="flex items-center gap-2.5 min-w-0">
+          <LifeLogo size={36} />
+          <div className="min-w-0">
+            <span className="font-[family-name:var(--font-newsreader)] text-xl font-medium italic tracking-tight text-foreground">
+              Life
+            </span>
+            <span className="block text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+              {localizeText('Dijital Yaşam')}
+            </span>
           </div>
         </Link>
 
@@ -137,7 +139,7 @@ export function DesktopSidebar() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-xs font-bold text-foreground truncate">
-              {user?.displayName || localizeText('LifeOS Kullanıcısı')}
+              {user?.displayName || localizeText('Life Kullanıcısı')}
             </div>
             <div className="text-[10px] text-muted-foreground truncate">
               {user?.email || localizeText((user?.lifeosId ? `@${user.lifeosId}` : 'Profil'))}

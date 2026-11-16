@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { assertAdmin } from '@/lib/admin/adminAuthGuard';
 
 export async function GET(request: Request) {
-  const auth = assertAdmin(request);
+  const auth = await assertAdmin(request);
   if (!auth.authorized || !auth.context) {
     return auth.response!;
   }

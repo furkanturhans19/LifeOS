@@ -36,9 +36,10 @@ export class PhotoBridgeAdapter {
       fileName: file.name,
       mimeType: file.type || 'image/jpeg',
       sizeBytes: file.size,
-      metadataStripped: true, // EXIF GPS metadata stripped at client boundary
+      // Web FileReader does not strip EXIF; do not claim otherwise.
+      metadataStripped: false,
       analysisPurpose,
-      targetAIProvider: 'LifeOS Güvenli AI Sunucusu',
+      targetAIProvider: 'Life Asistanı',
       approved: false,
       status: 'pending_consent',
     };

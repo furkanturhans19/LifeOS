@@ -15,7 +15,8 @@
 }
 
 @theme {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: var(--font-newsreader), ui-serif, Georgia, "Times New Roman", serif;
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
   --color-primary: hsl(var(--primary));
@@ -39,62 +40,61 @@
 }
 
 @layer base {
-  /* LIGHT THEME (Default: Calm, Premium, High Legibility) */
+  /* LIGHT THEME — quiet paper + sage */
   :root {
-    --background: 210 24% 98%;      /* #f8fafc */
-    --foreground: 222 47% 11%;      /* #0f172a */
-    --card: 0 0% 100%;              /* #ffffff */
-    --card-foreground: 222 47% 11%; /* #0f172a */
+    --background: 100 14% 96%;      /* soft sage paper */
+    --foreground: 220 28% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 28% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --secondary: 210 20% 95%;       /* #f1f5f9 */
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 20% 95%;           /* #f1f5f9 */
-    --muted-foreground: 215 16% 47%;/* #64748b */
-    --accent: 210 20% 95%;
-    --accent-foreground: 222 47% 11%;
-    --destructive: 0 84% 60%;       /* #ef4444 */
+    --popover-foreground: 220 28% 12%;
+    --secondary: 110 12% 92%;
+    --secondary-foreground: 220 28% 12%;
+    --muted: 110 10% 92%;
+    --muted-foreground: 215 12% 42%;
+    --accent: 110 12% 92%;
+    --accent-foreground: 220 28% 12%;
+    --destructive: 0 72% 48%;
     --destructive-foreground: 0 0% 100%;
-    --success: 158 64% 45%;         /* #10b981 */
-    --warning: 38 92% 50%;          /* #f59e0b */
-    --info: 199 89% 48%;           /* #0284c7 */
-    --border: 214 32% 91%;          /* #e2e8f0 */
-    --input: 214 32% 91%;           /* #e2e8f0 */
-    --radius: 0.875rem;
+    --success: 152 42% 38%;
+    --warning: 38 88% 46%;
+    --info: 199 70% 42%;
+    --border: 120 10% 86%;
+    --input: 120 10% 86%;
+    --radius: 1rem;
 
-    /* Default Accent: Blue */
-    --primary: 221 83% 53%;         /* #2563eb */
-    --primary-foreground: 0 0% 100%;
-    --ring: 221 83% 53%;
+    /* Brand accent: sage */
+    --primary: 148 18% 36%;
+    --primary-foreground: 40 30% 97%;
+    --ring: 148 18% 36%;
   }
 
-  /* DARK THEME (Obsidian Slate: Deep, Non-glare, High Contrast) */
+  /* DARK THEME — charcoal navy */
   .dark, [data-theme="dark"] {
-    --background: 224 45% 6%;       /* #090d16 */
-    --foreground: 210 40% 98%;      /* #f8fafc */
-    --card: 224 40% 10%;            /* #101726 */
-    --card-foreground: 210 40% 98%; /* #f8fafc */
-    --popover: 224 40% 10%;
-    --popover-foreground: 210 40% 98%;
-    --secondary: 223 35% 15%;       /* #192237 */
-    --secondary-foreground: 210 40% 98%;
-    --muted: 223 35% 14%;           /* #171f32 */
-    --muted-foreground: 215 20% 65%;/* #94a3b8 */
-    --accent: 223 35% 15%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 72% 51%;
+    --background: 220 42% 8%;       /* #0b1220 */
+    --foreground: 40 20% 96%;
+    --card: 220 34% 12%;
+    --card-foreground: 40 20% 96%;
+    --popover: 220 34% 12%;
+    --popover-foreground: 40 20% 96%;
+    --secondary: 220 28% 16%;
+    --secondary-foreground: 40 20% 96%;
+    --muted: 220 26% 15%;
+    --muted-foreground: 215 14% 68%;
+    --accent: 220 28% 16%;
+    --accent-foreground: 40 20% 96%;
+    --destructive: 0 62% 48%;
     --destructive-foreground: 0 0% 100%;
-    --success: 158 64% 45%;
-    --warning: 38 92% 50%;
-    --info: 199 89% 48%;
-    --border: 223 30% 18%;          /* #1e293b */
-    --input: 223 30% 18%;
-    --radius: 0.875rem;
+    --success: 152 40% 48%;
+    --warning: 38 88% 52%;
+    --info: 199 70% 52%;
+    --border: 220 22% 20%;
+    --input: 220 22% 20%;
+    --radius: 1rem;
 
-    /* Default Accent: Blue */
-    --primary: 217 91% 60%;         /* #3b82f6 */
-    --primary-foreground: 0 0% 100%;
-    --ring: 217 91% 60%;
+    --primary: 148 22% 52%;
+    --primary-foreground: 220 42% 8%;
+    --ring: 148 22% 52%;
   }
 
   /* ACCENT COLOR MODES */

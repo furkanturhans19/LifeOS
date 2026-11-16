@@ -1,6 +1,6 @@
-# 🌌 LifeOS — Phase 1: Core & Phone Experience
+﻿# 🌌 Life — Phase 1: Core & Phone Experience
 
-LifeOS, klasik bir mobil/web uygulaması gibi değil, **kişisel dijital yaşam alanı ve telefon benzeri sanal ana ekran** olarak tasarlanmış modern bir işletim sistemi deneyimidir.
+Life, klasik bir mobil/web uygulaması gibi değil, **kişisel dijital yaşam alanı ve telefon benzeri sanal ana ekran** olarak tasarlanmış modern bir işletim sistemi deneyimidir.
 
 ---
 
@@ -16,7 +16,7 @@ Uygulama [http://localhost:3000](http://localhost:3000) adresinde çalışacakt�
 
 ## 🛠️ Mimari ve Özellikler
 
-### 1. LifeOS Core
+### 1. Life Core
 - **Telefon benzeri Ana Ekran**: Minimal, modern, cam (glassmorphism) efektli ve dokunmatik odaklı.
 - **Canlı Durum Çubuğu (Status Bar)**: Canlı saat, tarih ve günün saatine göre akıllı selamlama (*"İyi Akşamlar"*).
 - **Entegre Arama Çubuğu**: Modülleri anlık arama ve hızlı erişim.
@@ -30,8 +30,8 @@ Uygulama [http://localhost:3000](http://localhost:3000) adresinde çalışacakt�
 - **Faz 1 Modül Durumu**: İlk aşama modüller *COMING_SOON* durumundadır ve tıklandığında bilgilendirici modal açılır.
 
 ### 3. Kullanıcı ve Kimlik
-- **LifeOS ID**: `@furkan` formatında benzersiz sistem kimliği.
-- **Profil Yönetimi**: Kişiselleştirilmiş profil, LifeOS ID ve avatar (`/profile`).
+- **Life ID**: `@furkan` formatında benzersiz sistem kimliği.
+- **Profil Yönetimi**: Kişiselleştirilmiş profil, Life ID ve avatar (`/profile`).
 
 ### 4. Ayarlar & Tema
 - **Tema Yönetimi**: Koyu Mod (varsayılan), Açık Mod ve Sistem Teması (`/settings/appearance`).

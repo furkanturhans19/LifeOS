@@ -81,7 +81,8 @@ export async function POST(req: NextRequest) {
   if (!key || !region) {
     return NextResponse.json(
       {
-        error: 'Sesli anlatımı etkinleştirmek için anlatıcı servisi yapılandırılmalıdır.',
+        error:
+          'Bulut sesli anlatım şu an kapalı. Azure Speech anahtarı yok; ses çalınmaz, metin ekranda kalır. Erkek/yabancı tarayıcı sesine düşülmez.',
         isConfigured: false,
       },
       { status: 503 }

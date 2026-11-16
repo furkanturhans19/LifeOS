@@ -32,6 +32,9 @@ interface ConnectState {
   messages: Record<string, Message[]>;
   isLoadingConversations: boolean;
   isLoadingMessages: boolean;
+  /** Connect REST retired → Lifechat; false when API returns 410 / unavailable */
+  backendAvailable: boolean;
+  backendHint: string | null;
 
   // Privacy & Settings
   privacySettings: ConnectUserPrivacySettings;
@@ -92,12 +95,14 @@ export const useConnectStore = create<ConnectState>((set, get) => ({
   setSearchQuery: (query) => set({ searchQuery: query }),
 
   currentUser: {
-    id: 'usr-furkan',
-    name: 'Furkan Turhan',
+    id: 'usr-local',
+    name: 'Ben',
     role: 'user',
-    badge: 'Pro',
+    badge: 'Local',
     isOnline: true,
   },
+  backendAvailable: false,
+  backendHint: null,
   setCurrentUserRole: (role) => {
     const isChild = role === 'child';
     set((state) => ({
@@ -159,10 +164,25 @@ export const useConnectStore = create<ConnectState>((set, get) => ({
     set({ isLoadingConversations: true });
     try {
       const res = await fetch('/api/connect/conversations');
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 410 || data?.error === 'USE_LIFECHAT') {
+        set({
+          conversations: [],
+          backendAvailable: false,
+          backendHint:
+            data?.endpoint
+              ? `Connect API emekli — ${data.endpoint} (bulut oturumu gerekli)`
+              : 'Connect API emekli; Lifechat için bulut oturumu gerekli',
+        });
+        return;
+      }
       if (data.success && Array.isArray(data.conversations)) {
         const convs = data.conversations as Conversation[];
-        set({ conversations: convs });
+        set({
+          conversations: convs,
+          backendAvailable: true,
+          backendHint: null,
+        });
 
         const currentActive = get().activeConversationId;
         const currentScope = get().activeScope;
@@ -174,9 +194,17 @@ export const useConnectStore = create<ConnectState>((set, get) => ({
             get().fetchMessages(filtered[0].id);
           }
         }
+      } else {
+        set({
+          backendAvailable: false,
+          backendHint: 'Sohbet backend şu an kullanılamıyor',
+        });
       }
     } catch {
-      // Keep existing state on error
+      set({
+        backendAvailable: false,
+        backendHint: 'Sohbet backend şu an kullanılamıyor',
+      });
     } finally {
       set({ isLoadingConversations: false });
     }

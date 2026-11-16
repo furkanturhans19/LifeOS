@@ -107,13 +107,13 @@ export function UniversalCheckoutModal() {
 
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">{localizeText("Ödeme Yöntemi:")}</span>
-                <span className="font-semibold text-foreground">{localizeText("LifeOS Kredisi")}</span>
+                <span className="font-semibold text-foreground">{localizeText("LifeMoney")}</span>
               </div>
 
               <div className="flex justify-between items-center pt-2 border-t border-border/60">
                 <span className="font-bold text-foreground">{localizeText("Kullanılan Kredi:")}</span>
                 <span className="font-black font-mono text-emerald-500 text-sm">
-                  {localizeText(receipt.creditsPaid ? `${receipt.creditsPaid} LifeOS Kredisi` : formatTL(receipt.amountPaidKurus))}
+                  {localizeText(receipt.creditsPaid ? `${receipt.creditsPaid} LifeMoney` : formatTL(receipt.amountPaidKurus))}
                 </span>
               </div>
             </div>
@@ -151,7 +151,7 @@ export function UniversalCheckoutModal() {
                 <span className="text-xs text-muted-foreground font-medium">{localizeText("Gerekli Bakiye:")}</span>
                 <div className="text-right">
                   <span className="text-base font-black font-mono text-foreground block">
-                    {localizeText(creditsRequired)}{localizeText(" LifeOS Kredisi")}</span>
+                    {localizeText(creditsRequired)}{localizeText(" LifeMoney")}</span>
                   <span className="text-[10px] text-muted-foreground">{localizeText("Yaklaşık: ")}{localizeText(totalAmountTL)}{localizeText(" TL (1 Kredi = 1,35 TL)")}</span>
                 </div>
               </div>
@@ -178,7 +178,7 @@ export function UniversalCheckoutModal() {
                       <Coins className="h-5 w-5" />
                     </div>
                     <div>
-                      <span className="text-xs font-bold text-foreground block">{localizeText("LifeOS Kredisi")}</span>
+                      <span className="text-xs font-bold text-foreground block">{localizeText("LifeMoney")}</span>
                       <span className="text-[10px] text-muted-foreground">{localizeText("Cüzdanınızdaki Bakiye:")}<strong className="font-mono text-foreground">{localizeText(creditBalance)}{localizeText(" Kredi")}</strong>
                       </span>
                     </div>

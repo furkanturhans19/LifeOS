@@ -25,7 +25,7 @@ export function ParentPinModal({
   description = 'Kids alanından çıkmak veya ayarları düzenlemek için 4 haneli PIN kodunuzu girin.',
 }: ParentPinModalProps) {
   const localizeText = useLocaleRender();
-  const { verifyPin, lockoutUntil } = useKidsStore();
+  const { verifyPin, lockoutUntil, hasCustomPin } = useKidsStore();
   const [pin, setPin] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [remainingTime, setRemainingTime] = useState<number | null>(null);
@@ -151,9 +151,18 @@ export function ParentPinModal({
           </button>
         </div>
 
-        {/* Demo Hint */}
-        <p className="text-[11px] text-muted-foreground/60 text-center pt-1">{localizeText("Varsayılan Ebeveyn PIN:")}<span className="font-mono font-bold text-foreground">2026</span>
-        </p>
+        {!hasCustomPin ? (
+          <p className="pt-1 text-center text-[11px] text-amber-700 dark:text-amber-300">
+            {localizeText('İlk giriş PIN:')}{' '}
+            <span className="font-mono font-bold">2026</span>
+            {' · '}
+            {localizeText('Ebeveyn alanında hemen değiştirmeniz gerekir.')}
+          </p>
+        ) : (
+          <p className="pt-1 text-center text-[11px] text-muted-foreground/60">
+            {localizeText('Özel ebeveyn PIN aktif')}
+          </p>
+        )}
       </div>
     </Modal>
   );

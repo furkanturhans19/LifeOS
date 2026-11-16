@@ -5,7 +5,7 @@ import { AdminRegistry } from '@/lib/admin/AdminRegistry';
 import type { PayoutStatus } from '@/types/finance';
 
 export async function GET(request: Request) {
-  const auth = assertAdmin(request);
+  const auth = await assertAdmin(request);
   if (!auth.authorized || !auth.context) {
     return auth.response!;
   }
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const auth = assertAdmin(request);
+  const auth = await assertAdmin(request);
   if (!auth.authorized || !auth.context) {
     return auth.response!;
   }

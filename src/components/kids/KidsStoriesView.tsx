@@ -22,6 +22,7 @@ import { Card } from '@/components/ui/Card';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useKidsStore } from '@/stores/useKidsStore';
 import { kidsSpeech } from '@/services/kidsSpeechService';
+import { KidsVoiceOfflineBanner } from '@/components/kids/KidsVoiceOfflineBanner';
 import type { KidsStoryItem } from '@/types/kids';
 import { cn } from '@/lib/utils';
 import { useLocaleRender } from '@/lib/i18n/runtime';
@@ -225,6 +226,8 @@ export function KidsStoriesView({ onBackToKids }: { onBackToKids: () => void }) 
           </Button>
         </div>
 
+        {!hasFemaleVoice && <KidsVoiceOfflineBanner compact />}
+
         {/* Reader Arena */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col items-center justify-center max-w-md mx-auto w-full">
           <motion.div
@@ -305,12 +308,24 @@ export function KidsStoriesView({ onBackToKids }: { onBackToKids: () => void }) 
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <h1 className="truncate text-base font-bold text-foreground">{localizeText("Masallar & Hikâyeler")}</h1>
-              <StatusBadge status="verified" label={localizeText("Doğal Anlatıcı")} size="sm" />
+              <StatusBadge
+                status={hasFemaleVoice ? 'verified' : 'pending'}
+                label={localizeText(hasFemaleVoice ? 'Doğal Anlatıcı' : 'Ses kapalı')}
+                size="sm"
+              />
             </div>
-            <p className="truncate text-xs text-muted-foreground">{localizeText("Resimli ve sıcak kadın sesli çocuk masalları")}</p>
+            <p className="truncate text-xs text-muted-foreground">
+              {localizeText(
+                hasFemaleVoice
+                  ? 'Resimli ve sıcak kadın sesli çocuk masalları'
+                  : 'Resimli masallar · sesli okuma şu an kapalı'
+              )}
+            </p>
           </div>
         </div>
       </div>
+
+      {!hasFemaleVoice && <KidsVoiceOfflineBanner compact />}
 
       {/* Stories List */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3 max-w-2xl mx-auto w-full">

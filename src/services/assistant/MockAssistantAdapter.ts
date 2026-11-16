@@ -102,22 +102,47 @@ export class LocalDeterministicAssistantAdapter implements AssistantProviderAdap
     if (
       p.includes('taksi') ||
       p.includes('nakliye') ||
+      p.includes('taşıma') ||
+      p.includes('tasima') ||
       p.includes('usta') ||
+      p.includes('tamirat') ||
       p.includes('seyahat') ||
       p.includes('otobüs') ||
+      p.includes('otobus') ||
       p.includes('hizmet')
     ) {
+      const serviceKind =
+        p.includes('taksi')
+          ? 'taxi'
+          : p.includes('nakliye') || p.includes('taşıma') || p.includes('tasima')
+            ? 'moving'
+            : p.includes('usta') || p.includes('tamirat') || p.includes('elektrik') || p.includes('tesisat')
+              ? 'craftsman'
+              : p.includes('seyahat') || p.includes('otobüs') || p.includes('otobus') || p.includes('bilet')
+                ? 'travel'
+                : undefined;
+      const kindLabel =
+        serviceKind === 'taxi'
+          ? 'Taksi'
+          : serviceKind === 'moving'
+            ? 'Nakliye'
+            : serviceKind === 'craftsman'
+              ? 'Usta'
+              : serviceKind === 'travel'
+                ? 'Seyahat'
+                : 'Hizmet';
       return {
         title: prompt.length > 50 ? `${prompt.slice(0, 47)}...` : prompt,
-        description: 'Hizmetler ekosisteminde talep ve teklif hazırlığı.',
+        description: `${kindLabel} için yerel talep / arama planı. Gerçek sipariş ilgili hizmet ekranında tamamlanır.`,
         type: 'services',
+        serviceKind,
         requiresApproval: true,
-        approvalDescription: 'Dış teklif veya talep yayınlanmadan önce tam onayınız zorunludur.',
+        approvalDescription: 'Talep taslağı hazır; yayınlama ilgili hizmet ekranında sizin tıklamanızla olur.',
         requiredScopes: ['services'],
         steps: [
-          { id: 's1', title: 'Hizmet İhtiyaç Kapsamının Belirlenmesi', details: 'Konum ve detay parametreleri yapılandırılır.' },
-          { id: 's2', title: 'Güvenli Talep Taslağının Oluşturulması', details: 'Kişisel veri arındırması yapılır.' },
-          { id: 's3', title: 'Talep Yayınlama Onay Adımı', details: 'Kullanıcı onayı olmadan talep pazara açılmaz.' },
+          { id: 's1', title: 'Hizmet ihtiyacının netleştirilmesi', details: `${kindLabel} kapsamı ve konum notları toplanır.` },
+          { id: 's2', title: 'Yerel talep taslağı', details: 'Kişisel veri paylaşılmadan plan kartı oluşturulur.' },
+          { id: 's3', title: 'Hizmet ekranına geçiş', details: 'Onay sonrası ilgili Life hizmetinde talep oluşturabilirsiniz.' },
         ],
       };
     }

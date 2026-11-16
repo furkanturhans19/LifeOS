@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
   PackagePlus,
@@ -23,17 +24,26 @@ import { CreateRequestModal } from './CreateRequestModal';
 import { SubmitBidModal } from './SubmitBidModal';
 import { RequestDetailModal } from './RequestDetailModal';
 import { LockedServicesModal } from '@/components/services/LockedServicesModal';
+import { ServiceHonestBanner } from '@/components/services/ServiceHonestBanner';
 import { ProviderGuardView } from '@/components/services/provider/ProviderGuardView';
 import { Dock } from '@/components/os/Dock';
 import { useMovingStore } from '@/stores/useMovingStore';
 import { useProviderAuthStore } from '@/stores/useProviderAuthStore';
-import { MOVING_STATUS_LABELS, type MovingRequest } from '@/types/moving';
+import {
+  MOVING_CATEGORY_DEFINITIONS,
+  MOVING_STATUS_LABELS,
+  type MovingCategoryType,
+  type MovingRequest,
+} from '@/types/moving';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { useLocaleRender, getFormattingLocale } from '@/lib/i18n/runtime';
 
 export function MovingScreen() {
   const localizeText = useLocaleRender();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const {
     currentRole,
     config,
@@ -47,9 +57,22 @@ export function MovingScreen() {
   const isMovingVerified = isVerifiedFor('moving');
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [prefillMovingType, setPrefillMovingType] =
+    useState<MovingCategoryType>('home_to_home');
   const [selectedRequestForDetail, setSelectedRequestForDetail] = useState<MovingRequest | null>(null);
   const [selectedRequestForBid, setSelectedRequestForBid] = useState<MovingRequest | null>(null);
   const [lockedFeatureTitle, setLockedFeatureTitle] = useState<string | null>(null);
+
+  function openCreate(type?: MovingCategoryType) {
+    if (type) setPrefillMovingType(type);
+    setIsCreateModalOpen(true);
+  }
+
+  useEffect(() => {
+    if (searchParams.get('create') !== '1') return;
+    if (currentRole === 'customer') openCreate();
+    router.replace(pathname, { scroll: false });
+  }, [searchParams, currentRole, router, pathname]);
 
   // Guarantee deduplication for UI rendering
   const deduplicatedMyRequests = Array.from(new Map(myRequests.map((r) => [r.id, r])).values());
@@ -62,80 +85,74 @@ export function MovingScreen() {
       {/* Top Header */}
       <MovingHeader />
 
-      {/* Main Scrollable Content */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden pb-32 scroll-smooth">
-        {/* Banner */}
+        <ServiceHonestBanner productHint="Taşıma türü → adresler → teklif kartları (nakliye pazarı akışı)." />
+
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="mx-4 mt-4 overflow-hidden rounded-3xl border border-border/80 bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent p-5"
+          className="mx-4 mt-3 overflow-hidden rounded-3xl border border-border/80 bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent p-5"
         >
           <div className="flex items-start justify-between">
             <div className="flex-1 pr-2">
               <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                 <ShieldCheck className="h-3.5 w-3.5" />
-                <span>{localizeText("Gizli Teklif & Güvenli Nakliye")}</span>
+                <span>{localizeText('Taşıma türü · teklif topla')}</span>
               </div>
               <h2 className="mt-1 text-base font-bold text-foreground">
-                {localizeText(currentRole === 'customer'
-                  ? 'Taşıma Talepleri & Teklif Yönetimi'
-                  : 'Nakliyeci Pazar Yeri & Açık İlanlar')}
+                {localizeText(
+                  currentRole === 'customer' ? 'Ne taşıyacaksın?' : 'Açık taşıma işleri'
+                )}
               </h2>
               <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                {localizeText(currentRole === 'customer'
-                  ? 'Taşıma talebinizi oluşturun, onaylı taşıyıcılardan fiyat toplayın. Numaranız ve açık adresiniz gizli tutulur.'
-                  : 'Açık taşıma ilanlarını inceleyin, doğrudan fiyat teklifi iletin. Diğer nakliyecilerin teklifleri gizlidir.')}
+                {localizeText(
+                  currentRole === 'customer'
+                    ? 'Evden eve, parça eşya veya ofis — tür seç, adresleri gir, teklif al.'
+                    : 'Açık ilanlara fiyat ver. Diğer teklifler gizlidir.'
+                )}
               </p>
             </div>
             <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-emerald-500/15 text-2xl shadow-sm">
               🚚
             </div>
           </div>
-
-          <div className="mt-4 flex flex-wrap items-center gap-2 pt-3 border-t border-border/40">
-            <div className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
-              <span>{localizeText("Numara Gizleme Garantisi")}</span>
-            </div>
-            <span className="text-muted-foreground/40">•</span>
-            <div className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
-              <Coins className="h-3.5 w-3.5 text-amber-500" />
-              <span>{localizeText("Teklif Kredisi: ")}{localizeText(config.bidCreditFee)} {localizeText(config.currency)}</span>
-            </div>
-          </div>
         </motion.div>
 
-        {/* ========================================================================= */}
-        {/* CUSTOMER VIEW (SADECE HİZMET ALAN / MÜŞTERİ) */}
-        {/* ========================================================================= */}
         {currentRole === 'customer' && (
           <div className="space-y-6">
-            {/* 1. Action Card: Taşıma Talebi Oluştur */}
             <div className="mt-5 px-4">
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="rounded-3xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/15 to-teal-500/5 p-5 shadow-sm"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-md shadow-emerald-500/25">
-                      <PackagePlus className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <h3 className="text-base font-bold text-foreground">{localizeText("Taşıma Talebi Oluştur")}</h3>
-                      <p className="text-xs text-muted-foreground">{localizeText("Evden eve, parça eşya veya şehirlerarası")}</p>
-                    </div>
-                  </div>
-                  <Button
-                    onClick={() => setIsCreateModalOpen(true)}
-                    size="sm"
-                    className="rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-xs shadow-md shadow-emerald-500/20"
+              <h3 className="mb-2 px-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                {localizeText('Taşıma türleri')}
+              </h3>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {MOVING_CATEGORY_DEFINITIONS.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => openCreate(cat.id)}
+                    className="flex flex-col items-start gap-1 rounded-2xl border border-border/80 bg-card p-3 text-left hover:border-emerald-500/40 hover:bg-emerald-500/5"
                   >
-                    <Plus className="h-3.5 w-3.5 mr-1" />{localizeText("Yeni Talep")}</Button>
-                </div>
-              </motion.div>
+                    <span className="text-xl">{cat.iconEmoji}</span>
+                    <span className="text-xs font-bold text-foreground">
+                      {localizeText(cat.labelTr)}
+                    </span>
+                    <span className="line-clamp-2 text-[10px] text-muted-foreground">
+                      {localizeText(cat.descriptionTr)}
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <div className="mt-3 flex justify-end">
+                <Button
+                  onClick={() => openCreate()}
+                  size="sm"
+                  className="rounded-2xl bg-emerald-500 font-semibold text-xs text-white hover:bg-emerald-600"
+                >
+                  <Plus className="mr-1 h-3.5 w-3.5" />
+                  {localizeText('Yeni talep')}
+                </Button>
+              </div>
             </div>
 
             {/* 2. My Requests Section */}
@@ -350,6 +367,7 @@ export function MovingScreen() {
       <CreateRequestModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
+        initialMovingType={prefillMovingType}
       />
 
       {/* Customer: Request Detail & Bids Modal */}

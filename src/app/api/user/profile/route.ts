@@ -1,81 +1,38 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { cleanLifeOSId, isValidLifeOSId } from '@/lib/utils';
-import { createClient } from '@/lib/supabase/server';
 import { getLocalUser, saveLocalUser, isLocalUsernameUnique } from '@/lib/localDb';
+import { getSessionSubjectId } from '@/lib/auth/request-user';
 
-const localDevelopmentAuth=()=>process.env.NODE_ENV!=='production'&&(!process.env.NEXT_PUBLIC_SUPABASE_URL||/placeholder|your[_-]/.test(process.env.NEXT_PUBLIC_SUPABASE_URL));
-
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user: sbUser } } = await supabase.auth.getUser();
-
-    let verifiedSupabaseId = sbUser?.id;
-    if (!verifiedSupabaseId && localDevelopmentAuth()) {
-      const cookieStore = await cookies();
-      verifiedSupabaseId = cookieStore.get('lifeos_session')?.value;
+    const verifiedSupabaseId = await getSessionSubjectId();
+    if (!verifiedSupabaseId) {
+      return NextResponse.json({ error: 'SIGN_IN' }, { status: 401 });
     }
 
-    if(!verifiedSupabaseId)return NextResponse.json({error:'SIGN_IN'},{status:401});
     let dbUser = null;
 
-    // Prioritize authenticated session ID to retrieve the profile securely
-    if (verifiedSupabaseId) {
-      try {
-        dbUser = await prisma.user.findUnique({
-          where: { supabaseId: verifiedSupabaseId },
-          include: { homescreen: true },
-        });
-      } catch (dbErr) {
-        console.warn('DB offline (GET profile), using local fallback:', dbErr);
-        const localUser = getLocalUser(verifiedSupabaseId);
-        if (localUser) {
-          return NextResponse.json({ user: localUser });
-        }
-        return NextResponse.json(
-          { error: 'Veritabanı bağlantısı yok. Lütfen tekrar deneyin.' },
-          { status: 503 }
-        );
+    try {
+      dbUser = await prisma.user.findUnique({
+        where: { supabaseId: verifiedSupabaseId },
+        include: { homescreen: true },
+      });
+    } catch (dbErr) {
+      console.warn('DB offline (GET profile), using local fallback:', dbErr);
+      const localUser = getLocalUser(verifiedSupabaseId);
+      if (localUser) {
+        return NextResponse.json({ user: localUser });
       }
-    }
-
-    // Fallback/Legacy query parameters (if no session or for public queries)
-    if (!dbUser && localDevelopmentAuth()) {
-      const { searchParams } = new URL(request.url);
-      const userId = searchParams.get('userId');
-      const email = searchParams.get('email');
-      const lifeosId = searchParams.get('lifeosId');
-
-      if (!userId && !email && !lifeosId) {
-        // Try local fallback if we have a session ID
-        if (verifiedSupabaseId) {
-          const localUser = getLocalUser(verifiedSupabaseId);
-          if (localUser) return NextResponse.json({ user: localUser });
-        }
-        return NextResponse.json(
-          { error: 'Kullanıcı tanımlayıcısı belirtilmedi.' },
-          { status: 400 }
-        );
-      }
-
-      const whereClause: any = {};
-      if (userId) whereClause.id = userId;
-      else if (email) whereClause.email = email;
-      else if (lifeosId) whereClause.lifeosId = cleanLifeOSId(lifeosId);
-
-      try {
-        dbUser = await prisma.user.findFirst({
-          where: whereClause,
-          include: { homescreen: true },
-        });
-      } catch (dbErr) {
-        console.warn('DB offline (GET profile fallback query):', dbErr);
-      }
+      return NextResponse.json(
+        { error: 'Veritabanı bağlantısı yok. Lütfen tekrar deneyin.' },
+        { status: 503 }
+      );
     }
 
     if (!dbUser) {
+      const localUser = getLocalUser(verifiedSupabaseId);
+      if (localUser) return NextResponse.json({ user: localUser });
       return NextResponse.json({ error: 'Kullanıcı bulunamadı.' }, { status: 404 });
     }
 
@@ -108,14 +65,7 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user: sbUser } } = await supabase.auth.getUser();
-
-    let verifiedSupabaseId = sbUser?.id;
-    if (!verifiedSupabaseId && localDevelopmentAuth()) {
-      const cookieStore = await cookies();
-      verifiedSupabaseId = cookieStore.get('lifeos_session')?.value;
-    }
+    const verifiedSupabaseId = await getSessionSubjectId();
 
     // Strict authentication check
     if (!verifiedSupabaseId) {
@@ -171,17 +121,23 @@ export async function PATCH(request: NextRequest) {
         where: { supabaseId: verifiedSupabaseId }
       });
 
-      // Fallback: If registration was offline, the user record might not exist in Prisma yet.
       if (!dbUser) {
-        const email = sbUser?.email || bodyEmail || '';
-        const fallbackLifeosId = cleanLifeOSId(rawLifeosId || email.split('@')[0]) || `user_${Date.now()}`;
-        const fallbackDisplayName = displayName || sbUser?.user_metadata?.display_name || email.split('@')[0] || 'LifeOS Kullanıcısı';
+        const local = getLocalUser(verifiedSupabaseId);
+        const email = local?.email || bodyEmail || '';
+        if (!email || typeof email !== 'string') {
+          return NextResponse.json({ error: 'Profil bulunamadı.' }, { status: 404 });
+        }
+        const fallbackLifeosId =
+          cleanLifeOSId(rawLifeosId || local?.lifeosId || email.split('@')[0]) ||
+          `user_${Date.now()}`;
+        const fallbackDisplayName =
+          displayName || local?.displayName || email.split('@')[0] || 'Life Kullanıcısı';
 
         dbUser = await prisma.user.create({
           data: {
             supabaseId: verifiedSupabaseId,
             email,
-            displayName: fallbackDisplayName,
+            displayName: String(fallbackDisplayName),
             lifeosId: fallbackLifeosId,
             theme: theme || 'dark',
             locale: locale || 'tr',
@@ -198,20 +154,21 @@ export async function PATCH(request: NextRequest) {
                       { moduleId: 'family', position: 2, size: 'small' },
                       { moduleId: 'finance', position: 3, size: 'small' },
                       { moduleId: 'medai', position: 4, size: 'small' },
-                      { moduleId: 'energy', position: 5, size: 'small' },
-                      { moduleId: 'camera', position: 6, size: 'small' },
-                      { moduleId: 'smart-home', position: 7, size: 'small' }
-                    ]
-                  }
+                      { moduleId: 'kids', position: 5, size: 'small' },
+                      { moduleId: 'arcade', position: 6, size: 'small' },
+                      { moduleId: 'smart-home', position: 7, size: 'small' },
+                    ],
+                  },
                 ],
                 dockItems: [
-                  { moduleId: 'ai', position: 0 },
-                  { moduleId: 'files', position: 1 },
-                  { moduleId: 'cloud', position: 2 }
-                ]
+                  { moduleId: 'services', position: 0 },
+                  { moduleId: 'chat', position: 1 },
+                  { moduleId: 'ai', position: 2 },
+                  { moduleId: 'family', position: 3 },
+                ],
               },
             },
-          }
+          },
         });
       }
 
@@ -255,21 +212,6 @@ export async function PATCH(request: NextRequest) {
         updatedAt: updatedUser.updatedAt.toISOString(),
       });
 
-      // Try updating Supabase user_metadata to maintain auth service synchronization
-      try {
-        const metadataUpdates: any = {};
-        if (displayName) metadataUpdates.display_name = displayName;
-        if (cleanedLifeosId) metadataUpdates.lifeos_id = cleanedLifeosId;
-        if (backgroundType) metadataUpdates.background_type = backgroundType;
-        if (backgroundValue) metadataUpdates.background_value = backgroundValue;
-
-        if (Object.keys(metadataUpdates).length > 0 && sbUser) {
-          await supabase.auth.updateUser({ data: metadataUpdates });
-        }
-      } catch (sbError) {
-        console.warn('Supabase metadata sync failed:', sbError);
-      }
-
       return NextResponse.json({
         success: true,
         user: {
@@ -288,12 +230,9 @@ export async function PATCH(request: NextRequest) {
           updatedAt: updatedUser.updatedAt.toISOString(),
         },
       });
-    } catch (dbError: any) {
-      if(!localDevelopmentAuth())return NextResponse.json({error:'UNAVAILABLE'},{status:503});
-      // DB is offline — apply changes only to local fallback store
+    } catch (dbError: unknown) {
       console.warn('DB offline (PATCH profile), using local fallback:', dbError);
 
-      // Case-insensitive uniqueness check in local store
       if (cleanedLifeosId && !isLocalUsernameUnique(cleanedLifeosId, verifiedSupabaseId)) {
         return NextResponse.json(
           { error: `@${cleanedLifeosId} kullanıcı adı zaten kullanılıyor.` },
@@ -301,16 +240,12 @@ export async function PATCH(request: NextRequest) {
         );
       }
 
-      // Get existing local user to preserve all previous fields
       const existingLocal = getLocalUser(verifiedSupabaseId) || {
         id: `local_${Date.now()}`,
         supabaseId: verifiedSupabaseId,
-        email: sbUser?.email || bodyEmail || '',
-        lifeosId: cleanLifeOSId(sbUser?.email?.split('@')[0] || '') || 'user',
-        displayName:
-          sbUser?.user_metadata?.display_name ||
-          sbUser?.email?.split('@')[0] ||
-          'LifeOS Kullanıcısı',
+        email: bodyEmail || '',
+        lifeosId: cleanLifeOSId(String(bodyEmail || '').split('@')[0] || '') || 'user',
+        displayName: 'Life Kullanıcısı',
         locale: 'tr',
         theme: 'dark',
         backgroundType: 'default',

@@ -16,43 +16,40 @@ import { AppArtwork } from '@/components/ui/AppArtwork';
 import { getModuleById, getLocalizedModuleName } from '@/modules/registry';
 import { SERVICE_LINKS } from '@/modules/service-links';
 import { useTranslation } from '@/lib/i18n';
+import { ServiceHonestBanner } from '@/components/services/ServiceHonestBanner';
 
 const SERVICE_ITEMS = [
   {
     id: 'taxi',
     title: 'Taksi',
-    subtitle: 'Şehir içi ve şehirlerarası güvenli taksi çağırma',
+    subtitle: 'Alış–varış · sabit fiyat çağrı (şehir içi)',
     icon: Car,
     color: 'text-amber-500 bg-amber-500/10 border-amber-500/20',
-    href: '/services/taxi',
-    status: 'Aktif',
+    status: 'Yerel demo',
   },
   {
     id: 'travel',
     title: 'Seyahat',
-    subtitle: 'Otobüs seferleri, uçak, otel ve araç kiralama',
+    subtitle: 'Otobüs: nereden–nereye–tarih · sefer listesi',
     icon: Compass,
     color: 'text-blue-500 bg-blue-500/10 border-blue-500/20',
-    href: '/services/travel',
-    status: 'Aktif',
+    status: 'Yerel demo',
   },
   {
     id: 'moving',
     title: 'Nakliye',
-    subtitle: 'Evden eve taşıma ve parça eşya lojistiği',
+    subtitle: 'Taşıma türü · adres · teklif kartları',
     icon: Truck,
     color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20',
-    href: '/services/moving',
-    status: 'Aktif',
+    status: 'Yerel demo',
   },
   {
     id: 'craftsman',
     title: 'Usta',
-    subtitle: 'Elektrik, tesisat, boya ve montaj ustası',
+    subtitle: 'Kategori seç · talep · teklif karşılaştır',
     icon: Wrench,
-    color: 'text-purple-500 bg-purple-500/10 border-purple-500/20',
-    href: '/services/craftsman',
-    status: 'Aktif',
+    color: 'text-violet-500 bg-violet-500/10 border-violet-500/20',
+    status: 'Yerel demo',
   },
 ];
 
@@ -60,8 +57,10 @@ export function ServicesHubGrid() {
   const localizeText = useLocaleRender();
   const { locale } = useTranslation();
   return (
-    <div className="px-4 mt-4 sm:px-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+    <div className="px-4 mt-2 sm:px-6">
+      <ServiceHonestBanner productHint="Dört hizmet yerel demo: gerçek ödeme ve canlı eşleşme yok." />
+
+      <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
         {SERVICE_ITEMS.map((item) => {
           const Icon = item.icon;
           const serviceModule = getModuleById(item.id);
@@ -72,13 +71,18 @@ export function ServicesHubGrid() {
                   <div
                     className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border ${item.color} shadow-xs transition-transform group-hover:scale-105`}
                   >
-                    <AppArtwork id={item.id} className="h-9 w-9 text-2xl"
-                      fallback={serviceModule?.icon ?? <Icon className="h-5 w-5" />} />
+                    <AppArtwork
+                      id={item.id}
+                      className="h-9 w-9 text-2xl"
+                      fallback={serviceModule?.icon ?? <Icon className="h-5 w-5" />}
+                    />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <h3 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors truncate">
-                        {serviceModule ? getLocalizedModuleName(serviceModule, locale) : localizeText(item.title)}
+                        {serviceModule
+                          ? getLocalizedModuleName(serviceModule, locale)
+                          : localizeText(item.title)}
                       </h3>
                       <StatusBadge status="active" label={localizeText(item.status)} size="sm" />
                     </div>
@@ -99,4 +103,3 @@ export function ServicesHubGrid() {
     </div>
   );
 }
-

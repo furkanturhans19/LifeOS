@@ -13,6 +13,7 @@ import { HotelPartnerDashboard } from './partner/HotelPartnerDashboard';
 import { CarRentalPartnerDashboard } from './partner/CarRentalPartnerDashboard';
 import { TravelPartnerGuardView } from './partner/TravelPartnerGuardView';
 import { LockedServicesModal } from '@/components/services/LockedServicesModal';
+import { ServiceHonestBanner } from '@/components/services/ServiceHonestBanner';
 import { Dock } from '@/components/os/Dock';
 import { useTravelStore } from '@/stores/useTravelStore';
 import { useTravelPartnerStore } from '@/stores/useTravelPartnerStore';
@@ -22,6 +23,7 @@ import { cn } from '@/lib/utils';
 import { Bus, Plane, Building, Car, ChevronRight, ArrowLeft } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { Button } from '@/components/ui/Button';
 import { useLocaleRender } from '@/lib/i18n/runtime';
 
 const TRAVEL_PRODUCTS = [
@@ -110,8 +112,9 @@ export function TravelScreen() {
         }
       />
 
-      {/* Main Scrollable Content */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden pb-32 scroll-smooth">
+        <ServiceHonestBanner productHint="Nereden / Nereye / Tarih → sefer listesi → yerel rezervasyon kaydı (ödeme yok)." />
+
         <AnimatePresence mode="wait">
           {currentRole === 'passenger' ? (
             <motion.div
@@ -122,8 +125,27 @@ export function TravelScreen() {
               transition={{ duration: 0.15 }}
             >
               {selectedProduct === null ? (
-                /* Closed Options Grid */
-                <div className="px-4 mt-4 sm:px-6">
+                <div className="px-4 mt-3 sm:px-6">
+                  <div className="mb-3 rounded-2xl border border-blue-500/20 bg-blue-500/5 px-4 py-3">
+                    <p className="text-sm font-bold text-foreground">
+                      {localizeText('Şehirlerarası otobüs ara')}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {localizeText(
+                        'Kalkış, varış ve tarih seç — seferleri karşılaştır. Uçak/otel yakında.'
+                      )}
+                    </p>
+                    <Button
+                      className="mt-3 w-full rounded-2xl bg-blue-600 font-semibold text-white hover:bg-blue-700"
+                      onClick={() => {
+                        setSelectedProduct('bus');
+                        setActiveTab('bus');
+                      }}
+                    >
+                      <Bus className="mr-1.5 h-4 w-4" />
+                      {localizeText('Otobüs seferi ara')}
+                    </Button>
+                  </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     {TRAVEL_PRODUCTS.map((prod) => {
                       const Icon = prod.icon;

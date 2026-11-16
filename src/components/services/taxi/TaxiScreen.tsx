@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
   Car,
@@ -19,6 +20,7 @@ import { TaxiHeader } from './TaxiHeader';
 import { CreateTaxiRequestModal } from './CreateTaxiRequestModal';
 import { SubmitTaxiBidModal } from './SubmitTaxiBidModal';
 import { TaxiRequestDetailModal } from './TaxiRequestDetailModal';
+import { ServiceHonestBanner } from '@/components/services/ServiceHonestBanner';
 import { ProviderGuardView } from '@/components/services/provider/ProviderGuardView';
 import { Dock } from '@/components/os/Dock';
 import { useTaxiStore } from '@/stores/useTaxiStore';
@@ -30,6 +32,9 @@ import { useLocaleRender, getFormattingLocale } from '@/lib/i18n/runtime';
 
 export function TaxiScreen() {
   const localizeText = useLocaleRender();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const {
     currentRole,
     config,
@@ -46,6 +51,12 @@ export function TaxiScreen() {
   const [selectedRequestForDetail, setSelectedRequestForDetail] = useState<TaxiRequest | null>(null);
   const [selectedRequestForBid, setSelectedRequestForBid] = useState<TaxiRequest | null>(null);
 
+  useEffect(() => {
+    if (searchParams.get('create') !== '1') return;
+    if (currentRole === 'customer') setIsCreateModalOpen(true);
+    router.replace(pathname, { scroll: false });
+  }, [searchParams, currentRole, router, pathname]);
+
   // Guarantee deduplication for UI rendering
   const deduplicatedMyRequests = Array.from(new Map(myRequests.map((r) => [r.id, r])).values());
   const driverMarketplaceRequests = getMarketplaceRequestsForDriver();
@@ -56,25 +67,25 @@ export function TaxiScreen() {
       {/* Header */}
       <TaxiHeader />
 
-      {/* Main Scrollable Content */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden pb-32 scroll-smooth">
-        {/* Banner */}
+        <ServiceHonestBanner productHint="Alış → varış → sabit fiyat teklifi / çağrı kaydı (şehir içi taksi akışı)." />
+
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="mx-4 mt-4 overflow-hidden rounded-3xl border border-border/80 bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent p-5"
+          className="mx-4 mt-3 overflow-hidden rounded-3xl border border-border/80 bg-gradient-to-br from-yellow-500/15 via-amber-500/5 to-transparent p-5"
         >
           <div className="flex items-start justify-between">
             <div className="flex-1 pr-2">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-700 dark:text-amber-400">
                 <ShieldCheck className="h-3.5 w-3.5" />
-                <span>{localizeText("Sabit Fiyat & Güvenli Taksi")}</span>
+                <span>{localizeText('Sabit fiyat · hızlı çağrı')}</span>
               </div>
               <h2 className="mt-1 text-base font-bold text-foreground">
-                {localizeText(currentRole === 'customer'
-                  ? 'Taksi Talepleri & Teklif Yönetimi'
-                  : 'Şoför Pazar Yeri & Açık Talepler')}
+                {localizeText(
+                  currentRole === 'customer' ? 'Nereye gidiyorsun?' : 'Açık yolculuk talepleri'
+                )}
               </h2>
               <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
                 {localizeText(currentRole === 'customer'
@@ -118,8 +129,12 @@ export function TaxiScreen() {
                       <Car className="h-6 w-6" />
                     </div>
                     <div>
-                      <h3 className="text-base font-bold text-foreground">{localizeText("Yolculuk Talebi Oluştur")}</h3>
-                      <p className="text-xs text-muted-foreground">{localizeText("Şehir içi sabit fiyatlı hızlı taksi çağır")}</p>
+                      <h3 className="text-base font-bold text-foreground">
+                        {localizeText('Taksi çağır')}
+                      </h3>
+                      <p className="text-xs text-muted-foreground">
+                        {localizeText('Alış ve varış gir · sabit fiyat teklifi al')}
+                      </p>
                     </div>
                   </div>
                   <Button

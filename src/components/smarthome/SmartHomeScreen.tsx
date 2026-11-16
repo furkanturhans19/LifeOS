@@ -188,9 +188,19 @@ export function SmartHomeScreen() {
         </div>
       </header>
 
-      {/* Main Body */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-6">
-        {/* State A: EMPTY STATE (Zero fake data) */}
+        <div className="mb-4 flex items-start gap-2 rounded-2xl border border-amber-500/25 bg-amber-500/10 px-3 py-2.5 text-xs text-amber-950 dark:text-amber-100">
+          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <div>
+            <p className="font-semibold">{localizeText('Dürüst durum')}</p>
+            <p className="mt-0.5 opacity-90">
+              {localizeText(
+                'Home Assistant yolu gerçek olabilir. Matter eşleştirme şu an simülasyon / yerel kayıt — gerçek Matter commission yok.'
+              )}
+            </p>
+          </div>
+        </div>
+
         {!hasDevices ? (
           <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
             <div className="relative mb-6">
@@ -203,7 +213,9 @@ export function SmartHomeScreen() {
             </div>
 
             <h2 className="text-lg font-black tracking-tight text-foreground sm:text-xl">{localizeText("Henüz bağlı bir akıllı ev cihazın yok.")}</h2>
-            <p className="mt-2 text-xs text-muted-foreground max-w-md leading-relaxed sm:text-sm">{localizeText("Fiziksel olarak sahip olduğun cihazları")}<strong>{localizeText("Matter")}</strong>, <strong>{localizeText("Home Assistant")}</strong>{localizeText("veya")}<strong>{localizeText("desteklenen resmi marka hesabı")}</strong>{localizeText("ile eşleştirerek bağlayabilirsin.")}</p>
+            <p className="mt-2 text-xs text-muted-foreground max-w-md leading-relaxed sm:text-sm">
+              {localizeText('Home Assistant ile gerçek cihaz bağlayabilirsin. Matter şu an yerel simülasyon.')}
+            </p>
 
             <button
               onClick={() => setIsAddDeviceModalOpen(true)}
@@ -220,8 +232,10 @@ export function SmartHomeScreen() {
                 className="cursor-pointer rounded-2xl border border-border bg-card p-4 hover:border-primary/40 hover:bg-muted/30 transition-all"
               >
                 <QrCode className="h-5 w-5 text-emerald-500 mb-2" />
-                <h3 className="text-xs font-bold text-foreground">{localizeText("Matter QR Eşleştirme")}</h3>
-                <p className="text-[11px] text-muted-foreground mt-1">{localizeText("Kutudaki veya cihazdaki resmi Matter kodunu tarayın.")}</p>
+                <h3 className="text-xs font-bold text-foreground">{localizeText('Matter (simülasyon)')}</h3>
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  {localizeText('Kod girince yerel sahte cihaz kaydı oluşur — gerçek commission yok.')}
+                </p>
               </div>
 
               <div

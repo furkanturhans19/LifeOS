@@ -46,7 +46,7 @@ const TYPE_ICONS: Record<AssistantTaskType, React.ElementType> = {
 
 export function AssistantTaskCard({ task, onOpenDetail }: AssistantTaskCardProps) {
   const localizeText = useLocaleRender();
-  const { approveTask, cancelTask, deleteTask } = useAssistantStore();
+  const { approveTask, cancelTask, deleteTask, completeTask } = useAssistantStore();
 
   const Icon = TYPE_ICONS[task.type] || CalendarCheck;
   const config = ASSISTANT_TYPE_CONFIG[task.type];
@@ -187,12 +187,25 @@ export function AssistantTaskCard({ task, onOpenDetail }: AssistantTaskCardProps
           )}
 
           {isInProgress && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onOpenDetail(task)}
-              className="text-xs font-semibold"
-            >{localizeText("Görevi İzle")}</Button>
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onOpenDetail(task)}
+                className="text-xs font-semibold"
+              >
+                {localizeText('Detay')}
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => completeTask(task.id)}
+                className="text-xs font-semibold"
+              >
+                <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
+                {localizeText('Tamamla')}
+              </Button>
+            </>
           )}
 
           {isCompleted && (

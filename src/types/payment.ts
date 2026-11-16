@@ -1,7 +1,9 @@
 import type { FinanceSourceModule, TransactionStatus } from './finance';
+import { LIFEMONEY_KURUS_RATE, LIFEMONEY_TRY_RATE } from '@/lib/money/lifemoney';
 
-export const LIFEOS_CREDIT_RATE_KURUS = 200;
-export const LIFEOS_CREDIT_RATE_TL = 2;
+/** 1 LifeMoney = 2,38 ₺ (alias kept for legacy credit math) */
+export const LIFEOS_CREDIT_RATE_KURUS = LIFEMONEY_KURUS_RATE;
+export const LIFEOS_CREDIT_RATE_TL = LIFEMONEY_TRY_RATE;
 export const LIFEOS_CREDIT_PURCHASE_COMMISSION_PERCENT = 10;
 
 export type CreditTransactionType =
@@ -32,12 +34,12 @@ export type PaymentIntentStatus =
 
 export interface WalletAccount {
   userId: string;
-  creditBalance: number; // Integer LifeOS Credits currently available
-  purchasedCredits: number; // Total credits bought with TL
-  promoCredits: number; // Non-refundable promotional/bonus credits
-  spentCredits: number; // Total credits spent
-  refundedCredits: number; // Total credits refunded to original payment method
-  pendingRefundCredits: number; // Credits currently reserved under refund review
+  creditBalance: number; // LifeMoney balance (1 LM = 2,38 ₺)
+  purchasedCredits: number; // Total LifeMoney bought with TL
+  promoCredits: number; // Non-refundable promotional LifeMoney
+  spentCredits: number; // Total LifeMoney spent
+  refundedCredits: number; // Total LifeMoney refunded
+  pendingRefundCredits: number; // LifeMoney reserved under refund review
   // Backwards compatibility aliases:
   educationCreditBalance: number;
   cashBalanceKurus: number;

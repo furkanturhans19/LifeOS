@@ -1,11 +1,16 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
-import { ServicePlatform } from '@/components/platform/ServicePlatform';
+import { CraftsmanScreen } from '@/components/services/craftsman/CraftsmanScreen';
 
 export const metadata: Metadata = {
-  title: 'Usta & Tamirat — LifeOS',
-  description: 'LifeOS Güvenilir ve Doğrulanmış Usta & Ev Bakım Hizmetleri',
+  title: 'Usta — Life',
+  description: 'Kategori seç, talep oluştur, teklif topla (yerel demo)',
 };
 
 export default function CraftsmanPage() {
-  return <ServicePlatform kind="craftsman" />;
+  return (
+    <Suspense fallback={null}>
+      <CraftsmanScreen />
+    </Suspense>
+  );
 }

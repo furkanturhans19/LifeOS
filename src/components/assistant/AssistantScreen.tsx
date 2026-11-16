@@ -3,6 +3,7 @@
 import React, { useEffect } from 'react';
 import { AssistantHeader } from './AssistantHeader';
 import { AssistantSecurityBanner } from './AssistantSecurityBanner';
+import { AssistantModeBanner } from './AssistantModeBanner';
 import { AssistantCommandInput } from './AssistantCommandInput';
 import { AssistantTaskTabs } from './AssistantTaskTabs';
 import { AssistantTaskList } from './AssistantTaskList';
@@ -12,15 +13,17 @@ import { useAssistantStore } from '@/stores/useAssistantStore';
 import { Dock } from '@/components/os/Dock';
 
 export function AssistantScreen() {
-  const { currentView } = useAssistantStore();
-  useEffect(() => { useAssistantStore.getState().setCurrentView('chat'); }, []);
+  const { currentView, fetchProviderHealth } = useAssistantStore();
+  useEffect(() => {
+    useAssistantStore.getState().setCurrentView('tasks');
+    fetchProviderHealth();
+  }, [fetchProviderHealth]);
 
   return (
     <div className="flex h-full flex-col bg-background">
-      {/* Top Header */}
       <AssistantHeader />
+      <AssistantModeBanner />
 
-      {/* Main Content Area */}
       {currentView === 'chat' && (
         <div className="flex-1 overflow-hidden">
           <AssistantChatView />
@@ -29,10 +32,7 @@ export function AssistantScreen() {
 
       {currentView === 'tasks' && (
         <div className="flex-1 overflow-y-auto overflow-x-hidden pb-32 scroll-smooth">
-          {/* Security & Privacy Banner */}
           <AssistantSecurityBanner />
-
-          {/* Natural Language Command Input */}
           <AssistantCommandInput />
 
           {/* Task Tabs & Filters */}

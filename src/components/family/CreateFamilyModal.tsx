@@ -66,8 +66,12 @@ export function CreateFamilyModal({ isOpen, onClose }: CreateFamilyModalProps) {
               <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-3xl shadow-lg shadow-amber-500/20">
                 {localizeText(selectedEmoji)}
               </div>
-              <h3 className="text-xl font-bold text-foreground">{localizeText("Yeni Aile Oluştur")}</h3>
-              <p className="mt-1 text-xs text-muted-foreground">{localizeText("Aileni bir araya getir, anılarını ve planlarını paylaş.")}</p>
+              <h3 className="text-xl font-bold text-foreground">{localizeText('Yeni Aile Oluştur')}</h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {localizeText(
+                  'Bu cihazda aile grubu oluştur. Üyeler ve notlar yerelde saklanır.'
+                )}
+              </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">

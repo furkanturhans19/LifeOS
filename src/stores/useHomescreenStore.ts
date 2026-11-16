@@ -1,6 +1,27 @@
 import { create } from 'zustand';
 import type { HomescreenLayout, HomescreenPage, HomescreenItem, DockItem } from '@/types/module';
-import { DEFAULT_HOMESCREEN_MODULES, DEFAULT_DOCK_MODULES } from '@/modules/registry';
+import {
+  DEFAULT_HOMESCREEN_MODULES,
+  DEFAULT_DOCK_MODULES,
+  filterHomescreenEligible,
+  isHomescreenEligible,
+} from '@/modules/registry';
+
+function sanitizeLayout(layout: HomescreenLayout): HomescreenLayout {
+  return {
+    pages: layout.pages.map((page) => ({
+      ...page,
+      items: filterHomescreenEligible(page.items).map((item, position) => ({
+        ...item,
+        position,
+      })),
+    })),
+    dockItems: filterHomescreenEligible(layout.dockItems).map((item, position) => ({
+      ...item,
+      position,
+    })),
+  };
+}
 
 function buildDefaultLayout(): HomescreenLayout {
   const items: HomescreenItem[] = DEFAULT_HOMESCREEN_MODULES.map((id, index) => ({
@@ -46,7 +67,7 @@ export const useHomescreenStore = create<HomescreenState>()((set, get) => ({
   isLoading: false,
   activePageIndex: 0,
 
-  setLayout: (layout) => set({ layout }),
+  setLayout: (layout) => set({ layout: sanitizeLayout(layout) }),
   setEditMode: (isEditMode) => set({ isEditMode }),
   setLoading: (isLoading) => set({ isLoading }),
   setActivePage: (activePageIndex) => set({ activePageIndex }),
@@ -58,7 +79,7 @@ export const useHomescreenStore = create<HomescreenState>()((set, get) => ({
       if (res.ok) {
         const data = await res.json();
         if (data.layout) {
-          set({ layout: data.layout });
+          set({ layout: sanitizeLayout(data.layout) });
         }
       }
     } catch (err) {
@@ -82,6 +103,7 @@ export const useHomescreenStore = create<HomescreenState>()((set, get) => ({
   },
 
   addModuleToHomescreen: (moduleId) => {
+    if (!isHomescreenEligible(moduleId)) return;
     const { layout } = get();
     const currentPage = layout.pages[0] || { page: 0, items: [] };
 
@@ -134,6 +156,7 @@ export const useHomescreenStore = create<HomescreenState>()((set, get) => ({
   },
 
   moveModuleToDock: (moduleId) => {
+    if (!isHomescreenEligible(moduleId)) return;
     const { layout } = get();
     const alreadyInDock = layout.dockItems.some((item) => item.moduleId === moduleId);
     if (alreadyInDock || layout.dockItems.length >= 5) return;

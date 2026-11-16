@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import videoUi from './experience/catalog/video-ui.json';
 import { useThemeStore } from '@/stores/useThemeStore';
@@ -41,21 +41,51 @@ export function KidsHomeScreen() {
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   const [pendingSection, setPendingSection] = useState<KidsSectionKey | null>(null);
 
-  const [counts, setCounts] = useState({ game: 100, education: 100, story: 100, drawing: 100 });
+  const [counts, setCounts] = useState({
+    game: 0,
+    education: 0,
+    story: 0,
+    drawing: 0,
+    movie: 0,
+  });
+  const [countsReady, setCountsReady] = useState(false);
+
   useEffect(() => {
     if (activeSection !== null) return;
     const controller = new AbortController();
-    fetch('/api/kids/content', { signal: controller.signal, cache: 'no-store' })
-      .then(response => response.ok ? response.json() : null)
-      .then(data => {
-        if (!Array.isArray(data?.content)) return;
-        const next = { game: 0, education: 0, story: 0, drawing: 0 };
-        for (const item of data.content) {
-          if (Object.hasOwn(next, item.category)) next[item.category as keyof typeof next]++;
+    Promise.all([
+      fetch('/api/kids/content', { signal: controller.signal, cache: 'no-store' }).then((r) =>
+        r.ok ? r.json() : null
+      ),
+      fetch('/api/kids/videos', { signal: controller.signal, cache: 'no-store' }).then((r) =>
+        r.ok ? r.json() : null
+      ),
+    ])
+      .then(([contentData, videoData]) => {
+        const next = { game: 0, education: 0, story: 0, drawing: 0, movie: 0 };
+        if (Array.isArray(contentData?.content)) {
+          for (const item of contentData.content) {
+            if (Object.hasOwn(next, item.category)) {
+              next[item.category as keyof typeof next]++;
+            }
+          }
+        }
+        if (Array.isArray(videoData?.videos)) {
+          next.movie = videoData.videos.length;
         }
         setCounts(next);
-      }).catch(() => {});
+        setCountsReady(true);
+      })
+      .catch(() => setCountsReady(true));
     return () => controller.abort();
+  }, [activeSection]);
+
+  // Track session time while a kids section is open (not parent)
+  useEffect(() => {
+    if (!activeSection || activeSection === 'parent') return;
+    const { incrementUsageTime } = useKidsStore.getState();
+    const id = window.setInterval(() => incrementUsageTime(1), 60_000);
+    return () => window.clearInterval(id);
   }, [activeSection]);
 
   const handleSectionClick = (sectionKey: KidsSectionKey) => {
@@ -115,7 +145,7 @@ export function KidsHomeScreen() {
       emoji: '🎮',
       gradient: 'from-pink-500/20 via-pink-500/5 to-card',
       borderClass: 'border-pink-500/30 hover:border-pink-500',
-      badge: `${counts.game} Oyun`,
+      badge: countsReady ? `${counts.game} Oyun` : '…',
     },
     {
       id: 'study',
@@ -124,7 +154,7 @@ export function KidsHomeScreen() {
       emoji: '📚',
       gradient: 'from-blue-500/20 via-blue-500/5 to-card',
       borderClass: 'border-blue-500/30 hover:border-blue-500',
-      badge: `${counts.education} Etkinlik`,
+      badge: countsReady ? `${counts.education} Etkinlik` : '…',
     },
     {
       id: 'movie',
@@ -133,7 +163,11 @@ export function KidsHomeScreen() {
       emoji: '🎬',
       gradient: 'from-rose-500/20 via-rose-500/5 to-card',
       borderClass: 'border-rose-500/30 hover:border-rose-500',
-      badge: 'Reklamsız',
+      badge: countsReady
+        ? counts.movie > 0
+          ? `${counts.movie} video`
+          : 'Az içerik'
+        : '…',
     },
     {
       id: 'stories',
@@ -142,7 +176,7 @@ export function KidsHomeScreen() {
       emoji: '📖',
       gradient: 'from-amber-500/20 via-amber-500/5 to-card',
       borderClass: 'border-amber-500/30 hover:border-amber-500',
-      badge: `${counts.story} Hikâye`,
+      badge: countsReady ? `${counts.story} Hikâye` : '…',
     },
     {
       id: 'draw',
@@ -151,7 +185,7 @@ export function KidsHomeScreen() {
       emoji: '🎨',
       gradient: 'from-teal-500/20 via-teal-500/5 to-card',
       borderClass: 'border-teal-500/30 hover:border-teal-500',
-      badge: `${counts.drawing} Çizim`,
+      badge: countsReady ? `${counts.drawing} Çizim` : '…',
     },
     {
       id: 'parent',
@@ -160,7 +194,7 @@ export function KidsHomeScreen() {
       emoji: '🛡️',
       gradient: 'from-purple-500/20 via-purple-500/5 to-card',
       borderClass: 'border-purple-500/30 hover:border-purple-500',
-      badge: 'PIN Korumalı',
+      badge: 'PIN',
     },
   ];
 
@@ -175,7 +209,7 @@ export function KidsHomeScreen() {
 
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h1 className="truncate text-base font-extrabold text-foreground">{localizeText("LifeOS Çocuk Dünyası")}</h1>
+              <h1 className="truncate text-base font-extrabold text-foreground">{localizeText("Life Çocuk Dünyası")}</h1>
               <StatusBadge status="verified" label={localizeText("Güvenli Mod")} size="sm" />
             </div>
             <p className="truncate text-xs text-muted-foreground">{localizeText("Çocuklara özel eğlence ve öğrenme merkezi")}</p>
@@ -219,19 +253,34 @@ export function KidsHomeScreen() {
                 <span>{localizeText("Hoş Geldin Küçük Kaşif!")}</span>
               </div>
               <h2 className="mt-1 text-lg font-extrabold text-foreground">{localizeText("Öğren, Oyna ve Keşfet 🌟")}</h2>
-              <p className="mt-1 text-xs text-muted-foreground max-w-xs leading-relaxed">{localizeText("Tüm oyunlar, çizgi filmler ve masallar senin için özenle hazırlandı.")}</p>
+              <p className="mt-1 text-xs text-muted-foreground max-w-xs leading-relaxed">
+                {localizeText(
+                  'Yerel oyunlar, hikâyeler ve çizim hazır. Film kataloğu sınırlı.'
+                )}
+              </p>
             </div>
             <span className="text-5xl drop-shadow-md">🦄</span>
           </div>
 
-          {/* Time Remaining Pill */}
           <div className="mt-4 pt-3 border-t border-border/40 flex items-center justify-between text-xs">
             <div className="flex items-center gap-1.5 font-bold text-muted-foreground">
               <Clock className="h-3.5 w-3.5 text-amber-500" />
-              <span>{localizeText("Bugün: ")}{todayUsageMinutes} {localizeText("dk")}{dailyTimeLimitMinutes ? <> / {dailyTimeLimitMinutes} {localizeText("dk")}</> : null}
+              <span>
+                {localizeText('Bugün: ')}
+                {todayUsageMinutes} {localizeText('dk')}
+                {dailyTimeLimitMinutes ? (
+                  <>
+                    {' '}
+                    / {dailyTimeLimitMinutes} {localizeText('dk')}
+                  </>
+                ) : null}
               </span>
             </div>
-            <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">{localizeText("Süre Sınırı Güvende")}</span>
+            <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:text-amber-300">
+              {localizeText(
+                todayUsageMinutes === 0 ? 'Süre takibi başladı' : 'Oturum süresi sayılıyor'
+              )}
+            </span>
           </div>
         </motion.div>
 

@@ -86,9 +86,13 @@ interface AssistantStoreState {
   setActiveTab: (tab: 'all' | 'pending_approval' | 'in_progress' | 'completed') => void;
   setSelectedCategory: (category: string) => void;
   createTaskFromCommand: (command: string) => Promise<string>;
+  addLocalTask: (title: string, description?: string) => string;
+  completeTask: (taskId: string) => void;
   approveTask: (taskId: string) => Promise<void>;
   cancelTask: (taskId: string) => void;
   deleteTask: (taskId: string) => void;
+  /** Offline / AI kapalıyken yerel plan üretip görev oluştur */
+  runPlanOnlyReply: (command: string, conversationId: string) => Promise<void>;
 }
 
 export const useAssistantStore = create<AssistantStoreState>()(
@@ -292,7 +296,7 @@ export const useAssistantStore = create<AssistantStoreState>()(
                     fileName: attachedPhoto.fileName,
                     mimeType: attachedPhoto.mimeType,
                     analysisPurpose: attachedPhoto.analysisPurpose,
-                    metadataStripped: true,
+                    metadataStripped: false,
                   }
                 : undefined,
             }),
@@ -314,22 +318,14 @@ export const useAssistantStore = create<AssistantStoreState>()(
           }
 
           if (!resData.configured || resData.status === 'offline' || resData.status === 'unconfigured') {
-            const offlineMsg: AssistantMessage = {
-              id: assistantMsgId,
-              role: 'assistant',
-              content:
-                resData.message ||
-                'Ollama yerel sunucusuna bağlanılamadı. Terminalde "ollama serve" veya "ollama run llama3.2" komutunu çalıştırarak Ollama\'yı başlatabilirsiniz.',
-              timestamp: new Date().toISOString(),
-              status: 'complete',
-            };
-
             set((state) => ({
-              isStreaming: false,
-              conversations: state.conversations.map((c) =>
-                c.id === convId ? { ...c, messages: [...c.messages, offlineMsg] } : c
-              ),
+              providerInfo: {
+                ...state.providerInfo,
+                isOnline: false,
+                message: resData.message,
+              },
             }));
+            await get().runPlanOnlyReply(content, convId!);
             return;
           }
 
@@ -369,21 +365,74 @@ export const useAssistantStore = create<AssistantStoreState>()(
             ),
           }));
         } catch (err: any) {
-          const assistantMsgId = `msg_${Date.now()}_err`;
-          const fallbackMsg: AssistantMessage = {
-            id: assistantMsgId,
+          set((state) => ({
+            providerInfo: { ...state.providerInfo, isOnline: false },
+            activeError: err?.message || 'Bağlantı hatası',
+          }));
+          await get().runPlanOnlyReply(content, convId!);
+        }
+      },
+
+      runPlanOnlyReply: async (command: string, conversationId: string) => {
+        const now = new Date().toISOString();
+        try {
+          const taskId = await get().createTaskFromCommand(command);
+          const task = get().tasks.find((t) => t.id === taskId);
+          const stepsText =
+            task?.steps.map((s, i) => `${i + 1}. ${s.title}`).join('\n') || '—';
+
+          const planMsg: AssistantMessage = {
+            id: `msg_${Date.now()}_plan`,
             role: 'assistant',
-            content: 'Sunucu ile iletişim kurulurken bir bağlantı hatası oluştu. Lütfen tekrar deneyin.',
-            timestamp: new Date().toISOString(),
-            status: 'error',
-            error: err?.message,
+            content: [
+              'AI modeli şu an kapalı — **plan-only** modundayım.',
+              'Komutunu yerel görev planına çevirdim (cihazında saklanır).',
+              '',
+              `**${task?.title || 'Görev'}**`,
+              task?.description || '',
+              '',
+              'Adımlar:',
+              stepsText,
+              '',
+              'Görevler sekmesinden onaylayabilir veya tamamlayabilirsin. Ollama açıksa sohbet AI yanıtı da gelir.',
+            ].join('\n'),
+            timestamp: now,
+            status: 'complete',
+            toolCalls: [
+              {
+                id: `tc_open_task_${taskId}`,
+                name: 'open_local_task',
+                labelTr: 'Görevi aç',
+                isWriteAction: false,
+                arguments: { taskId },
+                status: 'executed',
+              },
+            ],
           };
 
           set((state) => ({
             isStreaming: false,
-            activeError: err?.message || 'Bağlantı hatası',
             conversations: state.conversations.map((c) =>
-              c.id === convId ? { ...c, messages: [...c.messages, fallbackMsg] } : c
+              c.id === conversationId
+                ? { ...c, updatedAt: now, messages: [...c.messages, planMsg] }
+                : c
+            ),
+          }));
+        } catch {
+          const errMsg: AssistantMessage = {
+            id: `msg_${Date.now()}_plan_err`,
+            role: 'assistant',
+            content:
+              'AI kapalı ve yerel plan da oluşturulamadı. Görevler sekmesinden elle görev ekleyebilirsin.',
+            timestamp: now,
+            status: 'error',
+          };
+          set((state) => ({
+            isStreaming: false,
+            conversations: state.conversations.map((c) =>
+              c.id === conversationId
+                ? { ...c, messages: [...c.messages, errMsg] }
+                : c
             ),
           }));
         }
@@ -434,6 +483,28 @@ export const useAssistantStore = create<AssistantStoreState>()(
               targetProvider: 'LifeOS Güvenli AI Sunucusu',
               status: 'allowed',
             });
+          }
+
+          const toolName = toolCall.name.toLowerCase();
+          if (
+            toolName.includes('task') ||
+            toolName === 'create_lifeos_task' ||
+            toolName === 'create_life_task'
+          ) {
+            const title =
+              (typeof toolCall.arguments?.title === 'string' && toolCall.arguments.title) ||
+              (typeof toolCall.arguments?.command === 'string' && toolCall.arguments.command) ||
+              toolCall.labelTr ||
+              'Yeni görev';
+            const description =
+              typeof toolCall.arguments?.description === 'string'
+                ? toolCall.arguments.description
+                : undefined;
+            if (toolCall.arguments?.command && typeof toolCall.arguments.command === 'string') {
+              await get().createTaskFromCommand(toolCall.arguments.command);
+            } else {
+              get().addLocalTask(title, description);
+            }
           }
 
           // Mark toolCall as executed
@@ -596,8 +667,69 @@ export const useAssistantStore = create<AssistantStoreState>()(
       // -----------------------------------------------------------------------
       // TASK ACTIONS (PRESERVED)
       // -----------------------------------------------------------------------
+      addLocalTask: (title, description) => {
+        const now = new Date().toISOString();
+        const taskId = `task_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+        const trimmed = title.trim().slice(0, 120) || 'Yeni görev';
+        const newTask: AssistantTask = {
+          id: taskId,
+          title: trimmed,
+          description: (description || 'Elle eklenen yerel görev').slice(0, 500),
+          type: 'planning',
+          status: 'in_progress',
+          createdAt: now,
+          updatedAt: now,
+          requiredScopes: ['tasks'],
+          grantedScopes: ['tasks'],
+          requiresApproval: false,
+          steps: [
+            {
+              id: 's1',
+              title: 'Görevi tamamla',
+              status: 'in_progress',
+              details: 'İş bitince Tamamla ile işaretle.',
+            },
+          ],
+          logs: [
+            {
+              timestamp: now,
+              level: 'info',
+              message: 'Yerel görev oluşturuldu (plan-only).',
+            },
+          ],
+        };
+        set((state) => ({ tasks: [newTask, ...state.tasks] }));
+        return taskId;
+      },
+
+      completeTask: (taskId) => {
+        const now = new Date().toISOString();
+        set((state) => ({
+          tasks: state.tasks.map((t) =>
+            t.id === taskId && t.status !== 'completed' && t.status !== 'cancelled'
+              ? {
+                  ...t,
+                  status: 'completed' as const,
+                  completedAt: now,
+                  updatedAt: now,
+                  steps: t.steps.map((s) => ({ ...s, status: 'completed' as const })),
+                  resultSummary: `"${t.title}" yerel olarak tamamlandı.`,
+                  logs: [
+                    ...t.logs,
+                    {
+                      timestamp: now,
+                      level: 'info' as const,
+                      message: 'Görev kullanıcı tarafından tamamlandı olarak işaretlendi.',
+                    },
+                  ],
+                }
+              : t
+          ),
+        }));
+      },
+
       createTaskFromCommand: async (command: string) => {
-        set({ isProcessingTask: true });
+        set({ isProcessingTask: true, isProcessing: true });
         try {
           const parsed = await taskAdapter.parseCommand(command);
           const now = new Date().toISOString();
@@ -614,7 +746,7 @@ export const useAssistantStore = create<AssistantStoreState>()(
             {
               timestamp: now,
               level: 'info',
-              message: `Görev oluşturuldu: "${parsed.title}". Gerekli izinler ve adımlar planlandı.`,
+              message: `Görev oluşturuldu: "${parsed.title}". Yerel plan adımları hazır.`,
             },
           ];
 
@@ -634,46 +766,18 @@ export const useAssistantStore = create<AssistantStoreState>()(
             steps: initialSteps,
             logs: initialLogs,
             contentDetails: parsed.contentDetails,
+            serviceKind: parsed.serviceKind,
           };
 
           set((state) => ({
             tasks: [newTask, ...state.tasks],
             isProcessingTask: false,
+            isProcessing: false,
           }));
-
-          if (!parsed.requiresApproval) {
-            setTimeout(() => {
-              const currentTask = get().tasks.find((t) => t.id === taskId);
-              if (currentTask && currentTask.status === 'in_progress') {
-                const updatedSteps = currentTask.steps.map((step, i) =>
-                  i === 0 ? { ...step, status: 'completed' as const } : i === 1 ? { ...step, status: 'in_progress' as const } : step
-                );
-                set((state) => ({
-                  tasks: state.tasks.map((t) =>
-                    t.id === taskId
-                      ? {
-                          ...t,
-                          steps: updatedSteps,
-                          updatedAt: new Date().toISOString(),
-                          logs: [
-                            ...t.logs,
-                            {
-                              timestamp: new Date().toISOString(),
-                              level: 'info',
-                              message: `Adım 1 (${currentTask.steps[0].title}) başarıyla tamamlandı.`,
-                            },
-                          ],
-                        }
-                      : t
-                  ),
-                }));
-              }
-            }, 800);
-          }
 
           return taskId;
         } catch (error) {
-          set({ isProcessingTask: false });
+          set({ isProcessingTask: false, isProcessing: false });
           throw error;
         }
       },
@@ -769,7 +873,7 @@ export const useAssistantStore = create<AssistantStoreState>()(
       },
     }),
     {
-      name: 'lifeos-assistant-storage',
+      name: 'life-assistant-v2',
       partialize: (state) => ({
         conversations: state.conversations,
         permissions: state.permissions,
@@ -777,6 +881,31 @@ export const useAssistantStore = create<AssistantStoreState>()(
         tasks: state.tasks,
         currentView: state.currentView,
       }),
+      merge: (persisted, current) => {
+        const p = (persisted || {}) as Partial<AssistantStoreState>;
+        let legacy: Partial<AssistantStoreState> = {};
+        if (typeof window !== 'undefined') {
+          try {
+            const raw = window.localStorage.getItem('lifeos-assistant-storage');
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              legacy = (parsed?.state || parsed) as Partial<AssistantStoreState>;
+            }
+          } catch {
+            /* ignore */
+          }
+        }
+        return {
+          ...current,
+          ...legacy,
+          ...p,
+          conversations: p.conversations ?? legacy.conversations ?? current.conversations,
+          permissions: p.permissions ?? legacy.permissions ?? current.permissions,
+          dataAccessLogs: p.dataAccessLogs ?? legacy.dataAccessLogs ?? current.dataAccessLogs,
+          tasks: p.tasks ?? legacy.tasks ?? current.tasks,
+          currentView: p.currentView ?? legacy.currentView ?? current.currentView,
+        };
+      },
     }
   )
 );

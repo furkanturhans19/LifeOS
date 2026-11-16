@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { ParentContentHub } from './experience/ParentContentHub';
 import React, { useState, useEffect } from 'react';
@@ -18,7 +18,8 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useKidsStore } from '@/stores/useKidsStore';
-import { kidsSpeech } from '@/services/kidsSpeechService';
+import { kidsSpeech, NO_AZURE_CONFIG_NOTICE } from '@/services/kidsSpeechService';
+import { KidsVoiceOfflineBanner } from '@/components/kids/KidsVoiceOfflineBanner';
 import type { KidsAgeFilter, KidsStudySubject, KidsSpeechSpeed } from '@/types/kids';
 import { cn } from '@/lib/utils';
 import { useLocaleRender } from '@/lib/i18n/runtime';
@@ -44,10 +45,12 @@ export function ParentDashboardView({ onBackToKids }: ParentDashboardViewProps) 
     setIsSpeaking,
     changePin,
     lockParent,
+    hasCustomPin,
   } = useKidsStore();
 
   const [oldPin, setOldPin] = useState('');
   const [newPin, setNewPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
   const [pinChangeMsg, setPinChangeMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isAzureConfigured, setIsAzureConfigured] = useState<boolean | null>(null);
   const [previewNotice, setPreviewNotice] = useState<string | null>(null);
@@ -68,7 +71,7 @@ export function ParentDashboardView({ onBackToKids }: ParentDashboardViewProps) 
     };
   }, [setIsSpeaking]);
 
-  const handleExitKidsToLifeOS = () => {
+  const handleExitKidsToLife = () => {
     kidsSpeech.stop();
     setKidsModeActive(false);
     lockParent();
@@ -77,11 +80,16 @@ export function ParentDashboardView({ onBackToKids }: ParentDashboardViewProps) 
 
   const handlePinSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const res = changePin(oldPin, newPin);
+    if (newPin !== confirmPin) {
+      setPinChangeMsg({ type: 'error', text: 'Yeni PIN doğrulaması eşleşmiyor.' });
+      return;
+    }
+    const res = changePin(oldPin || '2026', newPin);
     if (res.success) {
       setPinChangeMsg({ type: 'success', text: 'PIN kodunuz başarıyla güncellendi.' });
       setOldPin('');
       setNewPin('');
+      setConfirmPin('');
     } else {
       setPinChangeMsg({ type: 'error', text: res.error || 'PIN değiştirilemedi.' });
     }
@@ -96,7 +104,7 @@ export function ParentDashboardView({ onBackToKids }: ParentDashboardViewProps) 
     }
 
     if (!isAzureConfigured) {
-      setPreviewNotice('Sesli anlatımı etkinleştirmek için anlatıcı servisi yapılandırılmalıdır.');
+      setPreviewNotice(NO_AZURE_CONFIG_NOTICE);
       return;
     }
 
@@ -116,7 +124,7 @@ export function ParentDashboardView({ onBackToKids }: ParentDashboardViewProps) 
       onUnavailable: (msg) => {
         setIsPreviewPlaying(false);
         setIsSpeaking(false);
-        setPreviewNotice(msg || 'Sesli anlatımı etkinleştirmek için anlatıcı servisi yapılandırılmalıdır.');
+        setPreviewNotice(msg || NO_AZURE_CONFIG_NOTICE);
       },
       onError: () => {
         setIsPreviewPlaying(false);
@@ -182,14 +190,97 @@ export function ParentDashboardView({ onBackToKids }: ParentDashboardViewProps) 
         <Button
           variant="destructive"
           size="sm"
-          onClick={handleExitKidsToLifeOS}
+          onClick={handleExitKidsToLife}
           className="font-bold text-xs h-8 px-3 shadow-xs"
         >
-          <LogOut className="h-3.5 w-3.5 mr-1" />{localizeText("LifeOS'a Dön")}</Button>
+          <LogOut className="h-3.5 w-3.5 mr-1" />{localizeText("Life'a Dön")}</Button>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 max-w-2xl mx-auto w-full pb-12">
+        {!hasCustomPin && (
+          <Card className="border-amber-500/40 bg-amber-500/10 p-4 shadow-2xs space-y-3">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+              <div>
+                <h3 className="text-sm font-bold text-amber-950 dark:text-amber-100">
+                  {localizeText('Önce kendi PIN’inizi belirleyin')}
+                </h3>
+                <p className="mt-1 text-xs text-amber-900/90 dark:text-amber-100/90">
+                  {localizeText(
+                    'Varsayılan PIN (2026) güvenlik riski. Diğer ebeveyn ayarları yeni PIN kaydedilene kadar kilitli.'
+                  )}
+                </p>
+              </div>
+            </div>
+            <form onSubmit={handlePinSubmit} className="space-y-3">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                <div>
+                  <label className="mb-1 block text-[11px] font-semibold text-muted-foreground">
+                    {localizeText('Mevcut (2026)')}
+                  </label>
+                  <input
+                    type="password"
+                    inputMode="numeric"
+                    maxLength={4}
+                    value={oldPin}
+                    onChange={(e) => setOldPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    placeholder="2026"
+                    className="h-9 w-full rounded-xl border border-border bg-background px-3 text-center text-xs font-bold tracking-widest focus:border-primary focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] font-semibold text-muted-foreground">
+                    {localizeText('Yeni PIN')}
+                  </label>
+                  <input
+                    type="password"
+                    inputMode="numeric"
+                    maxLength={4}
+                    value={newPin}
+                    onChange={(e) => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    placeholder="****"
+                    className="h-9 w-full rounded-xl border border-border bg-background px-3 text-center text-xs font-bold tracking-widest focus:border-primary focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] font-semibold text-muted-foreground">
+                    {localizeText('Tekrar')}
+                  </label>
+                  <input
+                    type="password"
+                    inputMode="numeric"
+                    maxLength={4}
+                    value={confirmPin}
+                    onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    placeholder="****"
+                    className="h-9 w-full rounded-xl border border-border bg-background px-3 text-center text-xs font-bold tracking-widest focus:border-primary focus:outline-none"
+                  />
+                </div>
+              </div>
+              {pinChangeMsg && (
+                <p
+                  className={cn(
+                    'rounded-xl border p-2 text-center text-xs font-semibold',
+                    pinChangeMsg.type === 'success'
+                      ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-600'
+                      : 'border-destructive/20 bg-destructive/10 text-destructive'
+                  )}
+                >
+                  {localizeText(pinChangeMsg.text)}
+                </p>
+              )}
+              <Button type="submit" variant="primary" size="sm" className="h-9 w-full text-xs font-bold">
+                {localizeText('PIN’i kaydet ve devam et')}
+              </Button>
+            </form>
+          </Card>
+        )}
+
+        <div
+          className={cn('space-y-5', !hasCustomPin && 'pointer-events-none select-none opacity-40')}
+          aria-hidden={!hasCustomPin}
+        >
         <ParentContentHub />
         {/* Active Protection Card */}
         <Card className="p-4 border-emerald-500/30 bg-emerald-500/10 shadow-2xs">
@@ -212,11 +303,29 @@ export function ParentDashboardView({ onBackToKids }: ParentDashboardViewProps) 
             <div className="flex items-center gap-2">
               <Headphones className="h-4 w-4 text-purple-500" />
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="text-sm font-bold text-foreground">{localizeText("Sesli Anlatım ve Anlatıcı Sesi")}</h3>
-                  <span className="inline-flex items-center gap-1 rounded-md bg-purple-500/10 px-2 py-0.5 text-[10px] font-bold text-purple-600 dark:text-purple-400 border border-purple-500/20">{localizeText("🌸 Azure Türkçe Kadın Sesi")}</span>
+                  {isAzureConfigured === false ? (
+                    <span className="inline-flex items-center gap-1 rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:text-amber-200">
+                      {localizeText('Kapalı · bulut TTS yok')}
+                    </span>
+                  ) : isAzureConfigured === true ? (
+                    <span className="inline-flex items-center gap-1 rounded-md border border-purple-500/20 bg-purple-500/10 px-2 py-0.5 text-[10px] font-bold text-purple-600 dark:text-purple-400">
+                      {localizeText('Bulut TTS hazır')}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 rounded-md border border-border bg-muted/40 px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
+                      {localizeText('Kontrol ediliyor…')}
+                    </span>
+                  )}
                 </div>
-                <p className="text-[11px] text-muted-foreground mt-0.5">{localizeText("Sıcak, sakin ve güven veren kadın anlatıcı (Eski robotik/erkek sesler tamamen devre dışıdır)")}</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  {localizeText(
+                    isAzureConfigured === false
+                      ? 'Şu an yalnızca yazılı içerik. Bulut kadın anlatıcı (Azure) anahtarı yoksa ses çalınmaz.'
+                      : 'Sıcak, sakin kadın anlatıcı — erkek/yabancı tarayıcı sesine düşülmez.'
+                  )}
+                </p>
               </div>
             </div>
 
@@ -237,16 +346,7 @@ export function ParentDashboardView({ onBackToKids }: ParentDashboardViewProps) 
             </Button>
           </div>
 
-          {/* Servis Yapılandırılmamışsa Bilgilendirme */}
-          {isAzureConfigured === false && (
-            <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-200 text-xs font-medium space-y-1">
-              <div className="flex items-center gap-2 font-bold text-amber-900 dark:text-amber-100">
-                <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
-                <span>{localizeText("Anlatıcı Servisi Bilgilendirmesi")}</span>
-              </div>
-              <p className="leading-relaxed">{localizeText("Sesli anlatımı etkinleştirmek için anlatıcı servisi yapılandırılmalıdır.")}</p>
-            </div>
-          )}
+          {isAzureConfigured === false && <KidsVoiceOfflineBanner />}
 
           {previewNotice && (
             <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-300 text-xs font-medium flex items-center gap-2">
@@ -427,7 +527,13 @@ export function ParentDashboardView({ onBackToKids }: ParentDashboardViewProps) 
           <div className="p-3 rounded-xl bg-purple-500/5 border border-purple-500/20 text-[11px] text-muted-foreground leading-relaxed flex items-start gap-2">
             <ShieldCheck className="h-4 w-4 text-purple-500 shrink-0 mt-0.5" />
             <div>
-              <strong className="text-foreground block">{localizeText("Sıfır Erkek Ses Güvencesi:")}</strong>{localizeText("Cihazda veya tarayıcıda onaylı Türkçe kadın sesi bulunamazsa sistem asla erkek veya yabancı aksanlı sese geçiş yapmaz; çocukları korumak amacıyla sesli anlatım sessizce duraklatılır ve içerik ekranda yazılı olarak sunulur.")}</div>
+              <strong className="text-foreground block">{localizeText('Ses güvencesi:')}</strong>
+              {localizeText(
+                isAzureConfigured === false
+                  ? 'Bulut TTS kapalıyken tarayıcı/erkek sese düşülmez; anlatım sessiz kalır, metin ekranda okunur.'
+                  : 'Onaylı bulut kadın sesi yoksa erkek veya yabancı aksanlı tarayıcı sesine düşülmez; anlatım durur, metin ekranda kalır.'
+              )}
+            </div>
           </div>
         </Card>
 
@@ -551,31 +657,50 @@ export function ParentDashboardView({ onBackToKids }: ParentDashboardViewProps) 
         <Card className="p-4 border-border bg-card shadow-2xs space-y-3">
           <div className="flex items-center gap-2">
             <KeyRound className="h-4 w-4 text-primary" />
-            <h3 className="text-sm font-bold text-foreground">{localizeText("Ebeveyn PIN Kodunu Değiştir")}</h3>
+            <h3 className="text-sm font-bold text-foreground">
+              {localizeText('Ebeveyn PIN Kodunu Değiştir')}
+            </h3>
           </div>
 
           <form onSubmit={handlePinSubmit} className="space-y-3 pt-1">
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
               <div>
-                <label className="block text-[11px] font-semibold text-muted-foreground mb-1">{localizeText("Mevcut PIN")}</label>
+                <label className="mb-1 block text-[11px] font-semibold text-muted-foreground">
+                  {localizeText('Mevcut PIN')}
+                </label>
                 <input
                   type="password"
+                  inputMode="numeric"
                   maxLength={4}
                   value={oldPin}
-                  onChange={(e) => setOldPin(e.target.value)}
-                  placeholder={localizeText("2026")}
-                  className="w-full h-9 rounded-xl border border-border bg-background px-3 text-xs font-bold text-center tracking-widest focus:border-primary focus:outline-none"
+                  onChange={(e) => setOldPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  className="h-9 w-full rounded-xl border border-border bg-background px-3 text-center text-xs font-bold tracking-widest focus:border-primary focus:outline-none"
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-semibold text-muted-foreground mb-1">{localizeText("Yeni 4 Haneli PIN")}</label>
+                <label className="mb-1 block text-[11px] font-semibold text-muted-foreground">
+                  {localizeText('Yeni PIN')}
+                </label>
                 <input
                   type="password"
+                  inputMode="numeric"
                   maxLength={4}
                   value={newPin}
-                  onChange={(e) => setNewPin(e.target.value)}
-                  placeholder={localizeText("****")}
-                  className="w-full h-9 rounded-xl border border-border bg-background px-3 text-xs font-bold text-center tracking-widest focus:border-primary focus:outline-none"
+                  onChange={(e) => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  className="h-9 w-full rounded-xl border border-border bg-background px-3 text-center text-xs font-bold tracking-widest focus:border-primary focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] font-semibold text-muted-foreground">
+                  {localizeText('Tekrar')}
+                </label>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={4}
+                  value={confirmPin}
+                  onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  className="h-9 w-full rounded-xl border border-border bg-background px-3 text-center text-xs font-bold tracking-widest focus:border-primary focus:outline-none"
                 />
               </div>
             </div>
@@ -583,19 +708,22 @@ export function ParentDashboardView({ onBackToKids }: ParentDashboardViewProps) 
             {pinChangeMsg && (
               <div
                 className={cn(
-                  'text-xs font-semibold p-2 rounded-xl border text-center',
+                  'rounded-xl border p-2 text-center text-xs font-semibold',
                   pinChangeMsg.type === 'success'
-                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
-                    : 'bg-destructive/10 border-destructive/20 text-destructive'
+                    ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                    : 'border-destructive/20 bg-destructive/10 text-destructive'
                 )}
               >
                 {localizeText(pinChangeMsg.text)}
               </div>
             )}
 
-            <Button type="submit" variant="primary" size="sm" className="w-full font-bold text-xs h-9">{localizeText("PIN Güncelle")}</Button>
+            <Button type="submit" variant="primary" size="sm" className="h-9 w-full text-xs font-bold">
+              {localizeText('PIN Güncelle')}
+            </Button>
           </form>
         </Card>
+        </div>
       </div>
     </div>
   );

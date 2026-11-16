@@ -14,10 +14,9 @@ import type { InstructorApplication } from '@/types/education';
 
 // Environment / Master Admin identifiers - Strictly isolated to ONLY the owner
 // No spoofed IDs or arbitrary emails can match this.
+/** Only explicit admin session subjects — no spoofable user_local default. */
 const ADMIN_USER_IDS = new Set<string>([
   'admin_master',
-  'usr-super-admin',
-  'user_local', // Active developer/owner account
 ]);
 
 // Exact verified owner email only (can be set via OWNER_ADMIN_EMAIL in .env)
@@ -228,21 +227,6 @@ let MANAGED_USERS: AdminManagedUser[] = [
     createdAt: new Date(Date.now() - 86400000 * 20).toISOString(),
     lastActiveAt: new Date(Date.now() - 3600000 * 5).toISOString(),
   },
-  {
-    id: 'user_local',
-    lifeosId: 'user_local',
-    maskedEmail: 'f***n@lifeos.internal',
-    displayName: 'Furkan Turhan',
-    accountStatus: 'active',
-    roles: {
-      isInstructorVerified: false,
-      providerServices: [],
-      isAdmin: true, // Default local dev account has admin permission for local management testing
-    },
-    complaintsCount: 0,
-    createdAt: new Date(Date.now() - 86400000 * 15).toISOString(),
-    lastActiveAt: new Date().toISOString(),
-  },
 ];
 
 export class AdminRegistry {
@@ -264,7 +248,7 @@ export class AdminRegistry {
         isAdmin: true,
         role: (userId === 'usr-super-admin' ? 'super_admin' : 'admin') as AdminRole,
         adminId: userId || 'admin_master',
-        displayName: userId === 'user_local' ? 'Furkan Turhan (Yönetici)' : 'Sistem Yöneticisi',
+        displayName: 'Sistem Yöneticisi',
       };
     }
 

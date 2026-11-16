@@ -2,10 +2,9 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Crown, UserPlus } from 'lucide-react';
+import { Plus, Crown, UserPlus, X } from 'lucide-react';
 import { useFamilyStore } from '@/stores/useFamilyStore';
 import { FAMILY_ROLES } from '@/types/family';
-import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/lib/utils';
 import { useLocaleRender } from '@/lib/i18n/runtime';
 
@@ -16,7 +15,7 @@ interface FamilyMembersListProps {
 
 export function FamilyMembersList({ onOpenInvite, onOpenCreate }: FamilyMembersListProps) {
   const localizeText = useLocaleRender();
-  const { family } = useFamilyStore();
+  const { family, removeMember } = useFamilyStore();
 
   if (!family) {
     return (
@@ -67,14 +66,24 @@ export function FamilyMembersList({ onOpenInvite, onOpenCreate }: FamilyMembersL
               transition={{ duration: 0.2, delay: index * 0.05 }}
               className="relative flex w-28 flex-shrink-0 flex-col items-center rounded-2xl border border-border/80 bg-card p-3.5 text-center shadow-sm transition-all hover:border-amber-500/40"
             >
-              {/* Admin crown */}
               {member.isAdmin && (
                 <div
-                  className="absolute top-2 right-2 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500/10 text-amber-500"
-                  title={localizeText("Yönetici")}
+                  className="absolute top-2 left-2 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500/10 text-amber-500"
+                  title={localizeText('Yönetici')}
                 >
                   <Crown className="h-2.5 w-2.5" />
                 </div>
+              )}
+
+              {!member.isCurrentUser && (
+                <button
+                  type="button"
+                  aria-label={localizeText('Üyeyi kaldır')}
+                  onClick={() => removeMember(member.id)}
+                  className="absolute top-1.5 right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-muted text-muted-foreground hover:bg-destructive/15 hover:text-destructive"
+                >
+                  <X className="h-3 w-3" />
+                </button>
               )}
 
               {/* Avatar Emoji Container */}

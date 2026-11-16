@@ -1,116 +1,55 @@
-import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { SESSION_COOKIE, verifySessionToken } from '@/lib/auth/session';
 
-function isValidHttpUrl(urlString?: string): boolean {
-  if (!urlString) return false;
-  try {
-    const url = new URL(urlString);
-    return url.protocol === 'http:' || url.protocol === 'https:';
-  } catch {
-    return false;
-  }
-}
+const PROTECTED_PAGE_PREFIXES = [
+  '/home',
+  '/library',
+  '/profile',
+  '/settings',
+  '/ai',
+  '/chat',
+  '/connect',
+  '/family',
+  '/finance',
+  '/documents',
+  '/arcade',
+  '/kids',
+  '/courses',
+  '/education',
+  '/explore',
+  '/services',
+  '/smarthome',
+  '/notifications',
+  '/search',
+  '/admin',
+];
+
+const AUTH_PATHS = ['/login', '/register'];
 
 export async function proxy(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
+  const { pathname } = request.nextUrl;
+  const token = request.cookies.get(SESSION_COOKIE)?.value;
+  const sessionOk = Boolean(await verifySessionToken(token));
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const isProtectedPage = PROTECTED_PAGE_PREFIXES.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`)
+  );
+  const isAuthPath = AUTH_PATHS.some((path) => pathname.startsWith(path));
 
-  // If Supabase is not properly configured yet, allow navigation in demo/dev mode
-  if (
-    !supabaseUrl ||
-    !supabaseAnonKey ||
-    !isValidHttpUrl(supabaseUrl) ||
-    supabaseUrl.includes('your-project') ||
-    supabaseUrl.includes('your_supabase_project_url') ||
-    supabaseUrl.includes('placeholder')
-  ) {
-    const localSession = request.cookies.get('lifeos_session')?.value;
-    const { pathname } = request.nextUrl;
-    const protectedPaths = ['/home', '/library', '/profile', '/settings'];
-    const isProtectedPath = protectedPaths.some(
-      (path) => pathname === path || pathname.startsWith(path + '/')
-    );
-    const authPaths = ['/login', '/register'];
-    const isAuthPath = authPaths.some((path) => pathname.startsWith(path));
-
-    if (!localSession && isProtectedPath) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/login';
-      return NextResponse.redirect(url);
-    }
-
-    if (localSession && isAuthPath) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/home';
-      return NextResponse.redirect(url);
-    }
-
-    return supabaseResponse;
+  if (!sessionOk && isProtectedPage) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    url.searchParams.set('next', pathname);
+    return NextResponse.redirect(url);
   }
 
-  try {
-    const supabase = createServerClient(
-      supabaseUrl,
-      supabaseAnonKey,
-      {
-        cookies: {
-          getAll() {
-            return request.cookies.getAll();
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value }) =>
-              request.cookies.set(name, value)
-            );
-            supabaseResponse = NextResponse.next({
-              request,
-            });
-            cookiesToSet.forEach(({ name, value, options }) =>
-              supabaseResponse.cookies.set(name, value, options)
-            );
-          },
-        },
-      }
-    );
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    const localSession = request.cookies.get('lifeos_session')?.value;
-    const hasSession = !!user || Boolean(localSession);
-
-    const { pathname } = request.nextUrl;
-
-    // Protected routes
-    const protectedPaths = ['/home', '/library', '/profile', '/settings'];
-    const isProtectedPath = protectedPaths.some(
-      (path) => pathname === path || pathname.startsWith(path + '/')
-    );
-
-    // Auth routes (redirect to home if logged in)
-    const authPaths = ['/login', '/register'];
-    const isAuthPath = authPaths.some((path) => pathname.startsWith(path));
-
-    if (!hasSession && isProtectedPath) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/login';
-      return NextResponse.redirect(url);
-    }
-
-    if (hasSession && isAuthPath) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/home';
-      return NextResponse.redirect(url);
-    }
-  } catch (error) {
-    console.error('Supabase proxy error:', error);
+  if (sessionOk && isAuthPath) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/home';
+    return NextResponse.redirect(url);
   }
 
-  return supabaseResponse;
+  return NextResponse.next({ request });
 }
 
 export const config = {

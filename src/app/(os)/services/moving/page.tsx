@@ -1,11 +1,16 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
-import { ServicePlatform } from '@/components/platform/ServicePlatform';
+import { MovingScreen } from '@/components/services/moving/MovingScreen';
 
 export const metadata: Metadata = {
-  title: 'Nakliye & Taşıma — LifeOS',
-  description: 'LifeOS Güvenli Nakliye ve Akıllı Teklif Sistemi',
+  title: 'Nakliye — Life',
+  description: 'Taşıma türü, adres, teklif (yerel demo)',
 };
 
 export default function MovingPage() {
-  return <ServicePlatform kind="moving" />;
+  return (
+    <Suspense fallback={null}>
+      <MovingScreen />
+    </Suspense>
+  );
 }

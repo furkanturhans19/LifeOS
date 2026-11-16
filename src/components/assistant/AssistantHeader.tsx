@@ -16,7 +16,7 @@ export function AssistantHeader() {
     <PageHeader
       backHref="/home"
 
-      title={localizeText("LifeOS Asistan")}
+      title={localizeText('Life Asistan')}
 
 
       actions={

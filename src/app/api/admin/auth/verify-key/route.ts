@@ -1,105 +1,86 @@
 import { NextResponse } from 'next/server';
+import { timingSafeEqual } from 'node:crypto';
+import { getAdminMasterKey } from '@/lib/auth/secrets';
+import { attachAdminSessionCookie } from '@/lib/auth/session';
 
-// 22-Character Master Admin Key (Can be overridden via ADMIN_MASTER_KEY in .env)
-// Count: L(1)I(2)F(3)E(4)O(5)S(6)-(7)A(8)D(9)M(10)I(11)N(12)-(13)2(14)0(15)2(16)6(17)-(18)K(19)E(20)Y(21)S(22) = 22
-// Also supports: LIFEOS-ADMIN-2026-KEY2 (21) or LIFEOS-ADMIN-2026-KEY22 (23) or LIFEOS_ADMIN_MASTER_KEY_22 (26) gracefully
-const MASTER_KEYS_22 = new Set<string>([
-  'LIFEOS-ADMIN-2026-KEY22',
-  'LIFEOS-ADMIN-2026-KEY2',
-  'LIFEOS-ADMIN-2026-KEYS',
-  'LIFEOS-ADMIN-MASTER-22',
-]);
-
-export function getExpectedAdminKey(): string {
-  const envKey = process.env.ADMIN_MASTER_KEY?.trim();
-  if (envKey) {
-    return envKey;
-  }
-  return 'LIFEOS-ADMIN-2026-KEY22';
-}
-
-// In-memory rate-limiter for brute-force protection (0-Risk Defense)
 interface RateLimitRecord {
   attempts: number;
   lockedUntil: number;
 }
 const ATTEMPT_LOGS = new Map<string, RateLimitRecord>();
 
+function safeEqualString(a: string, b: string): boolean {
+  const ba = Buffer.from(a);
+  const bb = Buffer.from(b);
+  if (ba.length !== bb.length) return false;
+  return timingSafeEqual(ba, bb);
+}
+
 export async function POST(request: Request) {
   try {
+    const expectedKey = getAdminMasterKey();
+    if (!expectedKey) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            'ADMIN_MASTER_KEY tanımlı değil. Yönetici girişi bu ortamda kapalı.',
+        },
+        { status: 503 }
+      );
+    }
+
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '127.0.0.1';
     const now = Date.now();
-
-    // 1. Check Brute-Force Lockout
     const rateLimit = ATTEMPT_LOGS.get(ip) || { attempts: 0, lockedUntil: 0 };
+
     if (rateLimit.lockedUntil > now) {
       const remainingSeconds = Math.ceil((rateLimit.lockedUntil - now) / 1000);
       return NextResponse.json(
         {
           success: false,
-          error: `Güvenlik Koruması Devrede: Çok fazla hatalı deneme yapıldı. Lütfen ${remainingSeconds} saniye sonra tekrar deneyiniz.`,
+          error: `Çok fazla hatalı deneme. ${remainingSeconds} saniye sonra tekrar deneyin.`,
         },
         { status: 429 }
       );
     }
 
     const body = await request.json();
-    const { key, userId } = body;
+    const key = typeof body.key === 'string' ? body.key.trim() : '';
 
-    if (!key || typeof key !== 'string') {
+    if (!key) {
       return NextResponse.json(
-        { success: false, error: 'Lütfen 22 haneli güvenlik anahtarını giriniz.' },
+        { success: false, error: 'Güvenlik anahtarını giriniz.' },
         { status: 400 }
       );
     }
 
-    const trimmedKey = key.trim();
-    const envExpectedKey = getExpectedAdminKey();
-
-    const isValid =
-      trimmedKey === envExpectedKey ||
-      MASTER_KEYS_22.has(trimmedKey);
-
-    if (!isValid) {
-      // Increment failed attempts
+    if (!safeEqualString(key, expectedKey)) {
       rateLimit.attempts += 1;
       if (rateLimit.attempts >= 5) {
-        rateLimit.lockedUntil = now + 15 * 60 * 1000; // 15 minutes lockout
+        rateLimit.lockedUntil = now + 15 * 60 * 1000;
         rateLimit.attempts = 0;
       }
       ATTEMPT_LOGS.set(ip, rateLimit);
-
       return NextResponse.json(
-        {
-          success: false,
-          error: 'Geçersiz 2. güvenlik anahtarı. Yetkisiz giriş engellendi ve denetim kaydına işlendi.',
-        },
+        { success: false, error: 'Geçersiz güvenlik anahtarı.' },
         { status: 401 }
       );
     }
 
-    // Reset rate limiter on successful authentication
     ATTEMPT_LOGS.delete(ip);
 
     const response = NextResponse.json({
       success: true,
-      message: '22 haneli yönetici güvenlik anahtarı doğrulandı.',
+      message: 'Yönetici güvenlik anahtarı doğrulandı.',
       unlockedAt: new Date().toISOString(),
-      expiresIn: '24h',
+      expiresIn: '8h',
     });
 
-    // Set secure admin session cookie
-    response.cookies.set('lifeos_admin_key_verified', 'true', {
-      path: '/',
-      maxAge: 60 * 60 * 24, // 24 hours
-      sameSite: 'lax',
-      httpOnly: false,
-    });
-
-    return response;
-  } catch (error) {
+    return attachAdminSessionCookie(response, 'admin_master');
+  } catch {
     return NextResponse.json(
-      { success: false, error: 'Güvenlik anahtarı doğrulanırken sunucu hatası oluştu.' },
+      { success: false, error: 'Güvenlik anahtarı doğrulanırken hata oluştu.' },
       { status: 500 }
     );
   }

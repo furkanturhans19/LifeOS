@@ -8,12 +8,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { cleanLifeOSId, setSessionCookie, generateLocalUserId } from '@/lib/utils';
+import { LifeLogo } from '@/components/brand/LifeLogo';
 import { useLocaleRender } from '@/lib/i18n/runtime';
 
 const loginSchema = z.object({
@@ -42,105 +41,58 @@ export function LoginForm() {
   async function onSubmit(data: LoginFormData) {
     setError(null);
     try {
-      let supabaseUser: any = null;
-      try {
-        const supabase = createClient();
-        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({
           email: data.email,
           password: data.password,
-        });
+        }),
+      });
 
-        if (authError && !authError.message.includes('fetch failed') && !authError.message.includes('placeholder')) {
-          if (authError.message.includes('Invalid login credentials')) {
-            setError('E-posta veya şifre hatalı.');
-            return;
-          } else if (authError.message.includes('Email not confirmed')) {
-            setError('E-posta adresinizi doğrulayın.');
-            return;
-          }
-        }
-        supabaseUser = authData?.user;
-      } catch (sbErr) {
-        console.warn('Supabase login bypassed:', sbErr);
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(payload.error || 'E-posta veya şifre hatalı.');
+        return;
       }
 
-      // Sync with database profile
-      let userProfile: any = null;
-      try {
-        const syncRes = await fetch('/api/auth/sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: data.email,
-            supabaseId: supabaseUser?.id,
-            userMetadata: supabaseUser?.user_metadata,
-          }),
-        });
-
-        if (syncRes.ok) {
-          const syncData = await syncRes.json();
-          userProfile = syncData.user;
-        }
-      } catch (syncErr) {
-        console.warn('Sync profile fetch error:', syncErr);
+      const userProfile = payload.user;
+      if (!userProfile?.supabaseId) {
+        setError('Giriş başarısız oldu.');
+        return;
       }
 
-      const finalUsername = userProfile?.lifeosId || cleanLifeOSId(supabaseUser?.user_metadata?.lifeos_id || data.email.split('@')[0]);
-      const finalDisplayName = userProfile?.displayName || supabaseUser?.user_metadata?.display_name || data.email.split('@')[0];
+      setUser({
+        id: userProfile.id,
+        supabaseId: userProfile.supabaseId,
+        lifeosId: userProfile.lifeosId,
+        email: userProfile.email,
+        displayName: userProfile.displayName,
+        avatarUrl: userProfile.avatarUrl || null,
+        bio: userProfile.bio || null,
+        locale: userProfile.locale || 'tr',
+        theme: userProfile.theme || 'dark',
+        backgroundType: userProfile.backgroundType || 'default',
+        backgroundValue: userProfile.backgroundValue || null,
+        createdAt: userProfile.createdAt || new Date().toISOString(),
+        updatedAt: userProfile.updatedAt || new Date().toISOString(),
+      });
 
-      const localId = generateLocalUserId();
-      const fullUser = {
-        id: userProfile?.id || supabaseUser?.id || localId,
-        supabaseId: supabaseUser?.id || userProfile?.supabaseId || localId,
-        lifeosId: finalUsername,
-        email: data.email,
-        displayName: finalDisplayName,
-        avatarUrl: userProfile?.avatarUrl || null,
-        bio: userProfile?.bio || null,
-        locale: userProfile?.locale || 'tr',
-        theme: userProfile?.theme || 'dark',
-        backgroundType: userProfile?.backgroundType || 'default',
-        backgroundValue: userProfile?.backgroundValue || null,
-        createdAt: userProfile?.createdAt || new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      setUser(fullUser);
-      setSessionCookie(fullUser.supabaseId);
-
-      // Sync user theme & background
-      if (fullUser.backgroundType && fullUser.backgroundType !== 'default') {
-        setBackground(fullUser.backgroundType, fullUser.backgroundValue);
+      if (userProfile.backgroundType && userProfile.backgroundType !== 'default') {
+        setBackground(userProfile.backgroundType, userProfile.backgroundValue);
       } else {
         setBackground('default', null);
       }
 
-      if (fullUser.theme) {
-        setTheme(fullUser.theme as any);
+      if (userProfile.theme) {
+        setTheme(userProfile.theme);
       }
 
       router.replace('/home');
-    } catch (err: any) {
+    } catch (err) {
       console.error('Login process error:', err);
-      const username = cleanLifeOSId(data.email.split('@')[0]);
-      const localSupabaseId = generateLocalUserId();
-      setUser({
-        id: localSupabaseId,
-        supabaseId: localSupabaseId,
-        lifeosId: username,
-        email: data.email,
-        displayName: username.charAt(0).toUpperCase() + username.slice(1),
-        avatarUrl: null,
-        bio: 'LifeOS Kullanıcısı',
-        locale: 'tr',
-        theme: 'dark',
-        backgroundType: 'default',
-        backgroundValue: null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
-      setSessionCookie(localSupabaseId);
-      router.replace('/home');
+      setError('Giriş sırasında bir hata oluştu.');
     }
   }
 
@@ -151,40 +103,39 @@ export function LoginForm() {
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
       className="space-y-6"
     >
-      {/* Logo */}
-      <div className="flex flex-col items-center gap-3">
+      <div className="flex flex-col items-center gap-4">
         <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
+          initial={{ scale: 0.92, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.4, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-          className="h-16 w-16 rounded-[22px] bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-xl shadow-indigo-500/30"
+          transition={{ duration: 0.45, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
         >
-          <span className="text-3xl">⚡</span>
+          <LifeLogo size={72} priority />
         </motion.div>
-        <div className="text-center">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">{localizeText("LifeOS")}</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">{localizeText("Kişisel dijital yaşam alanın")}</p>
+        <div className="text-center space-y-1">
+          <h1 className="font-[family-name:var(--font-newsreader)] text-4xl font-medium tracking-tight text-foreground italic">
+            Life
+          </h1>
+          <p className="text-sm text-muted-foreground">{localizeText('Kişisel dijital yaşam alanın')}</p>
         </div>
       </div>
 
-      {/* Card */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.15 }}
-        className="rounded-3xl border border-border bg-card p-6 shadow-sm space-y-5"
+        className="space-y-5 rounded-3xl border border-border/70 bg-card/80 p-6 backdrop-blur-sm"
       >
         <div>
-          <h2 className="text-xl font-semibold text-foreground">{localizeText("Giriş Yap")}</h2>
-          <p className="text-sm text-muted-foreground mt-0.5">{localizeText("Hesabına hoş geldin.")}</p>
+          <h2 className="text-lg font-semibold tracking-tight text-foreground">{localizeText('Giriş Yap')}</h2>
+          <p className="mt-0.5 text-sm text-muted-foreground">{localizeText('Hesabına hoş geldin.')}</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <Input
             {...register('email')}
-            label={localizeText("E-posta")}
+            label={localizeText('E-posta')}
             type="email"
-            placeholder={localizeText("ornek@email.com")}
+            placeholder={localizeText('ornek@email.com')}
             autoComplete="email"
             autoCapitalize="off"
             icon={<Mail className="h-4 w-4" />}
@@ -193,9 +144,9 @@ export function LoginForm() {
 
           <Input
             {...register('password')}
-            label={localizeText("Şifre")}
+            label={localizeText('Şifre')}
             type={showPassword ? 'text' : 'password'}
-            placeholder={localizeText("••••••••")}
+            placeholder={localizeText('••••••••')}
             autoComplete="current-password"
             icon={<Lock className="h-4 w-4" />}
             rightIcon={
@@ -215,18 +166,23 @@ export function LoginForm() {
             <motion.div
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-xl bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive"
+              className="rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive"
             >
               {localizeText(error)}
             </motion.div>
           )}
 
-          <Button type="submit" size="lg" className="w-full" isLoading={isSubmitting}>{localizeText("Giriş Yap")}</Button>
+          <Button type="submit" size="lg" className="w-full" isLoading={isSubmitting}>
+            {localizeText('Giriş Yap')}
+          </Button>
         </form>
       </motion.div>
 
-      <p className="text-center text-sm text-muted-foreground">{localizeText("Hesabın yok mu?")}{localizeText(' ')}
-        <Link href="/register" className="font-semibold text-primary hover:underline underline-offset-4">{localizeText("Hesap oluştur")}</Link>
+      <p className="text-center text-sm text-muted-foreground">
+        {localizeText('Hesabın yok mu?')}{' '}
+        <Link href="/register" className="font-semibold text-primary underline-offset-4 hover:underline">
+          {localizeText('Hesap oluştur')}
+        </Link>
       </p>
     </motion.div>
   );

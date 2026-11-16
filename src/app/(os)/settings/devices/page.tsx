@@ -2,126 +2,61 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Laptop, Smartphone, ShieldCheck, Clock, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { ArrowLeft, Laptop, ShieldCheck } from 'lucide-react';
 import { useLocaleRender } from '@/lib/i18n/runtime';
 
 export default function DevicesSettingsPage() {
   const localizeText = useLocaleRender();
-  const currentDevice = {
-    name: 'LifeOS Web Browser',
-    type: 'desktop',
-    browser: 'Chrome / Next.js Client',
-    location: 'İstanbul, TR',
-    lastActive: 'Şu anda aktif',
-    isCurrent: true,
-  };
-
-  const otherDevices = [
-    {
-      id: 'dev_1',
-      name: 'iPhone 15 Pro',
-      type: 'mobile',
-      browser: 'LifeOS Mobile App',
-      location: 'İstanbul, TR',
-      lastActive: '2 saat önce',
-      isCurrent: false,
-    },
-    {
-      id: 'dev_2',
-      name: 'MacBook Air M2',
-      type: 'desktop',
-      browser: 'Safari 17.4',
-      location: 'Ankara, TR',
-      lastActive: '3 gün önce',
-      isCurrent: false,
-    },
-  ];
 
   return (
-    <div className="min-h-screen pb-28 pt-8 px-4 max-w-lg mx-auto">
-      <div className="flex items-center gap-3 mb-6">
+    <div className="mx-auto min-h-screen max-w-lg px-4 pb-28 pt-8">
+      <div className="mb-6 flex items-center gap-3">
         <Link
           href="/settings"
-          className="p-2 rounded-xl bg-card/60 hover:bg-card border border-white/10 text-foreground transition-all active:scale-95"
+          className="rounded-xl border border-border/70 bg-card/60 p-2 text-foreground transition-all hover:bg-card active:scale-95"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="h-5 w-5" />
         </Link>
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-foreground">{localizeText("Bağlı Cihazlar")}</h1>
-          <p className="text-xs text-muted-foreground">{localizeText("Aktif LifeOS oturumlarınızı yönetin")}</p>
+          <h1 className="text-xl font-bold tracking-tight text-foreground">
+            {localizeText('Bağlı Cihazlar')}
+          </h1>
+          <p className="text-xs text-muted-foreground">
+            {localizeText('Yalnızca bu tarayıcı oturumu doğrulanır')}
+          </p>
         </div>
       </div>
 
-      <div className="space-y-4">
-        <div className="rounded-3xl border border-primary/30 bg-primary/5 p-4 relative overflow-hidden backdrop-blur-xl">
-          <div className="flex items-start justify-between">
-            <div className="flex items-start gap-3">
-              <div className="p-2.5 rounded-2xl bg-primary/20 text-primary">
-                <Laptop className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-semibold text-foreground">{localizeText(currentDevice.name)}</h3>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/20 text-primary font-medium">{localizeText("Bu Cihaz")}</span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-0.5">{localizeText(currentDevice.browser)}</p>
-                <div className="flex items-center gap-3 mt-2 text-[11px] text-emerald-500 font-medium">
-                  <span className="flex items-center gap-1">
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    {localizeText(currentDevice.lastActive)}
-                  </span>
-                  <span>•</span>
-                  <span>{localizeText(currentDevice.location)}</span>
-                </div>
-              </div>
+      <div className="relative overflow-hidden rounded-3xl border border-primary/30 bg-primary/5 p-4 backdrop-blur-xl">
+        <div className="flex items-start gap-3">
+          <div className="rounded-2xl bg-primary/20 p-2.5 text-primary">
+            <Laptop className="h-5 w-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-foreground">
+                {localizeText('Bu tarayıcı')}
+              </h3>
+              <span className="rounded-full bg-primary/20 px-2 py-0.5 text-[10px] font-medium text-primary">
+                {localizeText('Aktif')}
+              </span>
+            </div>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {localizeText('Life Web · imzalı httpOnly oturum')}
+            </p>
+            <div className="mt-2 flex items-center gap-2 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+              <ShieldCheck className="h-3.5 w-3.5" />
+              <span>{localizeText('Şu anda aktif')}</span>
             </div>
           </div>
         </div>
-
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-2 pt-2">{localizeText("Diğer Oturumlar")}</h2>
-
-        <div className="rounded-3xl border border-white/10 bg-card/40 backdrop-blur-xl divide-y divide-white/5 overflow-hidden">
-          {otherDevices.map((dev) => (
-            <div key={dev.id} className="p-4 flex items-center justify-between gap-3">
-              <div className="flex items-start gap-3">
-                <div className="p-2.5 rounded-2xl bg-white/5 text-muted-foreground">
-                  {dev.type === 'mobile' ? (
-                    <Smartphone className="w-5 h-5" />
-                  ) : (
-                    <Laptop className="w-5 h-5" />
-                  )}
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-foreground">{localizeText(dev.name)}</h3>
-                  <p className="text-xs text-muted-foreground">{localizeText(dev.browser)}</p>
-                  <div className="flex items-center gap-2 mt-1 text-[11px] text-muted-foreground">
-                    <Clock className="w-3 h-3" />
-                    <span>{localizeText(dev.lastActive)}</span>
-                    <span>•</span>
-                    <span>{localizeText(dev.location)}</span>
-                  </div>
-                </div>
-              </div>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-destructive hover:bg-destructive/10 h-8 px-2"
-                onClick={() => alert(localizeText('Oturum sonlandırıldı.'))}
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </div>
-          ))}
-        </div>
-
-        <Button
-          variant="destructive"
-          className="w-full mt-4"
-          onClick={() => alert(localizeText('Diğer tüm cihazlardaki oturumlar sonlandırıldı.'))}
-        >{localizeText("Diğer Tüm Oturumlardan Çıkış Yap")}</Button>
       </div>
+
+      <p className="mt-4 px-1 text-xs leading-relaxed text-muted-foreground">
+        {localizeText(
+          'Çok cihazlı oturum listesi henüz bağlanmadı. Sahte cihaz kayıtları gösterilmez. Çıkış yapmak için profil veya ayarlardan oturumu kapatın.'
+        )}
+      </p>
     </div>
   );
 }

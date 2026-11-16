@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, UserPlus, Copy, Check, Share2 } from 'lucide-react';
+import { X, UserPlus, Copy, Check } from 'lucide-react';
 import { useFamilyStore } from '@/stores/useFamilyStore';
 import { FAMILY_ROLES, type FamilyRole } from '@/types/family';
 import { Button } from '@/components/ui/Button';
@@ -19,7 +19,7 @@ interface InviteMemberModalProps {
 export function InviteMemberModal({
   isOpen,
   onClose,
-  inviteCode = 'LIFEOS-FAM-7482',
+  inviteCode = 'LIFE-FAM-0000',
 }: InviteMemberModalProps) {
   const localizeText = useLocaleRender();
   const { inviteMember } = useFamilyStore();
@@ -75,30 +75,38 @@ export function InviteMemberModal({
               <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-2xl shadow-lg shadow-amber-500/20 text-white">
                 <UserPlus className="h-7 w-7" />
               </div>
-              <h3 className="text-xl font-bold text-foreground">{localizeText("Aile Üyesi Davet Et")}</h3>
-              <p className="mt-1 text-xs text-muted-foreground">{localizeText("Aile kodunu paylaş veya yeni bir aile ferdi tanımla.")}</p>
+              <h3 className="text-xl font-bold text-foreground">{localizeText("Aile Üyesi Ekle")}</h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {localizeText(
+                  'Üyeler bu cihazda tutulur. Davet kodu referans içindir; bulut daveti henüz yok.'
+                )}
+              </p>
             </div>
 
             {/* Invite Code Box */}
             <div className="mb-6 rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-[10px] font-semibold uppercase tracking-wider text-amber-500 dark:text-amber-400">{localizeText("Özel Aile Davet Kodu")}</div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wider text-amber-500 dark:text-amber-400">
+                    {localizeText('Aile referans kodu')}
+                  </div>
                   <div className="mt-1 font-mono text-lg font-bold tracking-wider text-foreground">
-                    {localizeText(inviteCode)}
+                    {inviteCode}
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={handleCopy}
                   className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500 text-white shadow-md transition-all hover:bg-amber-600 active:scale-95"
-                  title={localizeText("Kodu Kopyala")}
+                  title={localizeText('Kodu Kopyala')}
                 >
                   {isCopied ? <Check className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
                 </button>
               </div>
               {isCopied && (
-                <div className="mt-2 text-center text-xs font-medium text-emerald-500">{localizeText("✓ Davet kodu panoya kopyalandı!")}</div>
+                <div className="mt-2 text-center text-xs font-medium text-emerald-500">
+                  {localizeText('✓ Kod panoya kopyalandı')}
+                </div>
               )}
             </div>
 

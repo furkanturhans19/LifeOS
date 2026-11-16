@@ -13,13 +13,22 @@ import { useLocaleRender } from '@/lib/i18n/runtime';
 interface CreateRequestModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialMovingType?: MovingCategoryType;
 }
 
-export function CreateRequestModal({ isOpen, onClose }: CreateRequestModalProps) {
+export function CreateRequestModal({
+  isOpen,
+  onClose,
+  initialMovingType = 'home_to_home',
+}: CreateRequestModalProps) {
   const localizeText = useLocaleRender();
   const { createMovingRequest } = useMovingStore();
 
-  const [movingType, setMovingType] = useState<MovingCategoryType>('home_to_home');
+  const [movingType, setMovingType] = useState<MovingCategoryType>(initialMovingType);
+
+  React.useEffect(() => {
+    if (isOpen) setMovingType(initialMovingType);
+  }, [isOpen, initialMovingType]);
   const [fromCity, setFromCity] = useState('');
   const [toCity, setToCity] = useState('');
   const [loadDescription, setLoadDescription] = useState('');

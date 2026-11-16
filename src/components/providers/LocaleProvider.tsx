@@ -19,7 +19,7 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.lang = locale;
     document.documentElement.dir = LANGUAGE_MAP.get(locale)?.dir ?? 'ltr';
     const title = pathname === '/login' ? 'Giriş Yap' : pathname === '/register' ? 'Kayıt Ol' : null;
-    document.title = title ? `${localizeText(title, locale)} — LifeOS` : 'LifeOS';
+    document.title = title ? `${localizeText(title, locale)} — Life` : 'Life';
   }, [locale, pathname]);
 
   if (!hydrated) {

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { Bell, SlidersHorizontal } from 'lucide-react';
@@ -17,7 +17,7 @@ export function NotificationHeader({ onOpenPreferences }: NotificationHeaderProp
       backHref="/home"
       icon={<Bell className="h-5 w-5" />}
       title={localizeText("Bildirimler")}
-      subtitle={localizeText("LifeOS Bildirim ve Uyarı Alanı")}
+      subtitle={localizeText("Life Bildirim ve Uyarı Alanı")}
       badge={<StatusBadge status="open" label={localizeText("Merkez")} size="sm" />}
       actions={
         <button

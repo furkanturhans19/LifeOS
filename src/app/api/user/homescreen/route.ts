@@ -1,18 +1,10 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
-import { createClient } from '@/lib/supabase/server';
+import { getSessionSubjectId } from '@/lib/auth/request-user';
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user: sbUser } } = await supabase.auth.getUser();
-
-    let verifiedSupabaseId = sbUser?.id;
-    if (!verifiedSupabaseId) {
-      const cookieStore = await cookies();
-      verifiedSupabaseId = cookieStore.get('lifeos_session')?.value;
-    }
+    const verifiedSupabaseId = await getSessionSubjectId();
 
     if (!verifiedSupabaseId) {
       return NextResponse.json(
@@ -23,7 +15,7 @@ export async function GET(request: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { supabaseId: verifiedSupabaseId },
-      include: { homescreen: true }
+      include: { homescreen: true },
     });
 
     if (!user) {
@@ -32,7 +24,6 @@ export async function GET(request: NextRequest) {
 
     let layout = user.homescreen;
     if (!layout) {
-      // Create default layout
       layout = await prisma.homescreen.create({
         data: {
           userId: user.id,
@@ -45,18 +36,19 @@ export async function GET(request: NextRequest) {
                 { moduleId: 'family', position: 2, size: 'small' },
                 { moduleId: 'finance', position: 3, size: 'small' },
                 { moduleId: 'medai', position: 4, size: 'small' },
-                { moduleId: 'energy', position: 5, size: 'small' },
-                { moduleId: 'camera', position: 6, size: 'small' },
-                { moduleId: 'smart-home', position: 7, size: 'small' }
-              ]
-            }
+                { moduleId: 'kids', position: 5, size: 'small' },
+                { moduleId: 'arcade', position: 6, size: 'small' },
+                { moduleId: 'smart-home', position: 7, size: 'small' },
+              ],
+            },
           ],
           dockItems: [
-            { moduleId: 'ai', position: 0 },
-            { moduleId: 'files', position: 1 },
-            { moduleId: 'cloud', position: 2 }
-          ]
-        }
+            { moduleId: 'services', position: 0 },
+            { moduleId: 'chat', position: 1 },
+            { moduleId: 'ai', position: 2 },
+            { moduleId: 'family', position: 3 },
+          ],
+        },
       });
     }
 
@@ -64,28 +56,19 @@ export async function GET(request: NextRequest) {
       success: true,
       layout: {
         pages: layout.pages,
-        dockItems: layout.dockItems
-      }
+        dockItems: layout.dockItems,
+      },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Fetch homescreen layout error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Homescreen düzeni yüklenemedi.' },
-      { status: 500 }
-    );
+    const message = error instanceof Error ? error.message : 'Homescreen düzeni yüklenemedi.';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user: sbUser } } = await supabase.auth.getUser();
-
-    let verifiedSupabaseId = sbUser?.id;
-    if (!verifiedSupabaseId) {
-      const cookieStore = await cookies();
-      verifiedSupabaseId = cookieStore.get('lifeos_session')?.value;
-    }
+    const verifiedSupabaseId = await getSessionSubjectId();
 
     if (!verifiedSupabaseId) {
       return NextResponse.json(
@@ -105,7 +88,7 @@ export async function POST(request: NextRequest) {
     }
 
     const user = await prisma.user.findUnique({
-      where: { supabaseId: verifiedSupabaseId }
+      where: { supabaseId: verifiedSupabaseId },
     });
 
     if (!user) {
@@ -116,27 +99,25 @@ export async function POST(request: NextRequest) {
       where: { userId: user.id },
       update: {
         pages: layout.pages,
-        dockItems: layout.dockItems
+        dockItems: layout.dockItems,
       },
       create: {
         userId: user.id,
         pages: layout.pages,
-        dockItems: layout.dockItems
-      }
+        dockItems: layout.dockItems,
+      },
     });
 
     return NextResponse.json({
       success: true,
       layout: {
         pages: updatedHomescreen.pages,
-        dockItems: updatedHomescreen.dockItems
-      }
+        dockItems: updatedHomescreen.dockItems,
+      },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Save homescreen layout error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Homescreen düzeni kaydedilemedi.' },
-      { status: 500 }
-    );
+    const message = error instanceof Error ? error.message : 'Homescreen düzeni kaydedilemedi.';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

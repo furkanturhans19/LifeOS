@@ -87,7 +87,8 @@ export class MatterProvider implements ISmartHomeProvider {
 
     return {
       success: true,
-      message: 'Matter eşleştirme kodu doğrulandı ve yerel Thread/Wi-Fi kumaşına bağlandı.',
+      message:
+        'Kod formatı geçerli (simülasyon). Gerçek Matter/Thread eşleştirmesi bu sürümde yok — cihaz eklenmez.',
     };
   }
 
@@ -135,7 +136,10 @@ export class MatterProvider implements ISmartHomeProvider {
     serviceData?: Record<string, unknown>
   ): Promise<{ success: boolean; message?: string }> {
     // Forward command via local Matter CHIP/IP network
-    return { success: true, message: `Matter komutu (${service}) cihaza iletildi.` };
+    return {
+      success: false,
+      message: `Matter komutu (${service}) simülasyonda çalışmaz — donanıma iletilmedi.`,
+    };
   }
 }
 
